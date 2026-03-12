@@ -1,0 +1,6 @@
+flask
+firebase-admin
+PyPDF2
+scikit-learn
+gunicorn
+python-dotenv

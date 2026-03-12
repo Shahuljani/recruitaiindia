@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-3xl font-bold mb-8">Dashboard</h2>
+
+<div class="grid grid-cols-4 gap-6">
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-lg font-bold">Jobs</h3>
+        <p class="text-3xl">{{ stats.jobs }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-lg font-bold">Candidates</h3>
+        <p class="text-3xl">{{ stats.cands }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-lg font-bold">Shortlisted</h3>
+        <p class="text-3xl">{{ stats.short }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-lg font-bold">Avg Score</h3>
+        <p class="text-3xl">{{ stats.avg }}%</p>
+    </div>
+</div>
+
+<h3 class="text-xl font-bold mt-10 mb-4">Recent Candidates</h3>
+
+<table class="w-full bg-white shadow rounded">
+    <thead class="bg-gray-200">
+        <tr>
+            <th class="p-3">Name</th>
+            <th>Role</th>
+            <th>Score</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in recent %}
+        <tr class="border-t">
+            <td class="p-3">{{ c.name }}</td>
+            <td>{{ c.matched_role }}</td>
+            <td>{{ c.score }}%</td>
+            <td>{{ c.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

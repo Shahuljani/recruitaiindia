@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-3xl font-bold mb-6">Job Roles</h2>
+
+<form action="/add_job" method="POST" enctype="multipart/form-data" class="mb-6">
+    <input type="file" name="files" multiple accept=".pdf" class="mb-2">
+    <button class="bg-blue-600 text-white px-4 py-2 rounded">Upload Job PDF</button>
+</form>
+
+<div class="grid grid-cols-3 gap-6">
+    {% for j in jobs %}
+    <div class="bg-white p-4 rounded shadow">
+        <h3 class="font-bold">{{ j.title }}</h3>
+        <p class="text-sm text-gray-600 line-clamp-3">{{ j.description }}</p>
+
+        <form action="/delete_job" method="POST" class="mt-2">
+            <input type="hidden" name="id" value="{{ j.id }}">
+            <button class="text-red-500">Delete</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

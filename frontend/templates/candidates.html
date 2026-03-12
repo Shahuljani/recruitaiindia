@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-3xl font-bold mb-6">Candidates</h2>
+
+<a href="/export" class="bg-green-600 text-white px-4 py-2 rounded">Export CSV</a>
+
+<table class="w-full bg-white shadow rounded mt-4">
+    <thead class="bg-gray-200">
+        <tr>
+            <th class="p-3">Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Score</th>
+            <th>Status</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in cands %}
+        <tr class="border-t">
+            <td class="p-3">{{ c.name }}</td>
+            <td>{{ c.email }}</td>
+            <td>{{ c.matched_role }}</td>
+            <td>{{ c.score }}%</td>
+            <td>
+                <form action="/status" method="POST">
+                    <input type="hidden" name="id" value="{{ c.id }}">
+                    <select name="status" onchange="this.form.submit()">
+                        <option {% if c.status=='Shortlisted' %}selected{% endif %}>Shortlisted</option>
+                        <option {% if c.status=='On Hold' %}selected{% endif %}>On Hold</option>
+                        <option {% if c.status=='Rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </form>
+            </td>
+            <td>
+                <form action="/del_cand" method="POST">
+                    <input type="hidden" name="id" value="{{ c.id }}">
+                    <button class="text-red-500">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

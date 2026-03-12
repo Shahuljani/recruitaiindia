@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-900 to-slate-900">
+
+    <div class="bg-white p-8 rounded-xl shadow-xl w-96">
+        <h2 class="text-2xl font-bold mb-6 text-center">RecruitAI Login</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="mb-3 p-2 text-sm rounded 
+                    {% if category == 'success' %}bg-green-100 text-green-700
+                    {% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Email Login -->
+        <form action="/login" method="POST" class="space-y-4">
+            <input type="email" name="email" placeholder="Email" required class="w-full p-2 border rounded">
+            <input type="password" name="password" placeholder="Password" required class="w-full p-2 border rounded">
+            <button class="w-full bg-blue-600 text-white p-2 rounded">Login</button>
+        </form>
+
+        <!-- Google Login -->
+        <button onclick="googleLogin()" 
+        class="w-full bg-red-500 text-white p-2 rounded mt-4 flex items-center justify-center">
+            <i class="fab fa-google mr-2"></i> Login with Google
+        </button>
+
+        <p class="text-sm text-center mt-6">
+            New user? Sign up below
+        </p>
+
+        <!-- Signup -->
+        <form action="/signup" method="POST" class="space-y-3 mt-2">
+            <input type="email" name="email" placeholder="Email" required class="w-full p-2 border rounded">
+            <input type="password" name="password" placeholder="Password" required class="w-full p-2 border rounded">
+            <button class="w-full bg-green-600 text-white p-2 rounded">Sign Up</button>
+        </form>
+
+    </div>
+</div>
+
+
+<!-- FIREBASE GOOGLE AUTH -->
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup }
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCuSMCyMKGDaB1ks5NC1WBfpLXSllOr3AA",
+  authDomain: "recruitaiindia.firebaseapp.com",
+  projectId: "recruitaiindia",
+  storageBucket: "recruitaiindia.firebasestorage.app",
+  messagingSenderId: "545441119799",
+  appId: "1:545441119799:web:44565dcb7704cb7efe09b2"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+
+window.googleLogin = async function(){
+
+    const result = await signInWithPopup(auth, provider);
+
+    const user = result.user;
+
+    const token = await user.getIdToken();
+
+    await fetch("/google-login",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify({token:token})
+    });
+
+    window.location.href="/dashboard";
+}
+
+</script>
+
+{% endblock %}
