@@ -1,8 +1,102 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="text-3xl font-bold mb-6">Ranking</h2>
+<h2 class="text-3xl font-bold text-slate-800 mb-8">Candidate Ranking</h2>
 
-<p>This feature can be expanded with grouping logic if needed.</p>
+{% if grouped %}
+
+{% for role, candidates in grouped.items() %}
+<div class="bg-white rounded-xl shadow mb-8 border">
+
+    <!-- Role Header -->
+    <div class="bg-gray-100 px-6 py-4 flex justify-between items-center border-b">
+        <h3 class="text-xl font-bold text-gray-800">
+            {{ role }}
+        </h3>
+        <span class="text-sm text-gray-500">
+            {{ candidates|length }} Candidates
+        </span>
+    </div>
+
+    <!-- Ranking Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 text-gray-600 text-sm">
+                <tr>
+                    <th class="p-4">Rank</th>
+                    <th class="p-4">Name</th>
+                    <th class="p-4">Email</th>
+                    <th class="p-4">Score</th>
+                    <th class="p-4">Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for c in candidates %}
+            <tr class="border-t hover:bg-gray-50">
+
+                <!-- Rank -->
+                <td class="p-4 font-bold text-gray-700">
+                    #{{ loop.index }}
+                </td>
+
+                <!-- Name -->
+                <td class="p-4 font-medium text-slate-700">
+                    {{ c.name }}
+                </td>
+
+                <!-- Email -->
+                <td class="p-4 text-gray-500">
+                    {{ c.email }}
+                </td>
+
+                <!-- Score -->
+                <td class="p-4">
+                    <span class="px-3 py-1 rounded text-xs font-bold
+                    {% if c.score >= 75 %}
+                        bg-green-100 text-green-700
+                    {% elif c.score >= 50 %}
+                        bg-yellow-100 text-yellow-700
+                    {% else %}
+                        bg-red-100 text-red-700
+                    {% endif %}
+                    ">
+                        {{ c.score }}%
+                    </span>
+                </td>
+
+                <!-- Status -->
+                <td class="p-4">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                    {% if c.status == 'Shortlisted' %}
+                        bg-green-100 text-green-700
+                    {% elif c.status == 'On Hold' %}
+                        bg-yellow-100 text-yellow-700
+                    {% else %}
+                        bg-red-100 text-red-700
+                    {% endif %}
+                    ">
+                        {{ c.status }}
+                    </span>
+                </td>
+
+            </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endfor %}
+
+{% else %}
+
+<div class="bg-white p-10 rounded shadow text-center text-gray-400">
+    No candidate rankings available yet.
+</div>
+
+{% endif %}
 
 {% endblock %}
