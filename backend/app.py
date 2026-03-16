@@ -68,6 +68,35 @@ def signup():
         flash(str(e), "error")
     return redirect('/')
 
+@app.route('/ranking')
+def ranking():
+
+    if 'user' not in session:
+        return redirect('/')
+
+    uid = session['user']['id']
+
+    docs = db.collection("candidates").where("user_id", "==", uid).stream()
+
+    grouped = {}
+
+    for d in docs:
+        c = d.to_dict()
+        c["id"] = d.id
+
+        role = c.get("matched_role", "Unknown Role")
+
+        if role not in grouped:
+            grouped[role] = []
+
+        grouped[role].append(c)
+
+    # sort by score
+    for role in grouped:
+        grouped[role] = sorted(grouped[role], key=lambda x: x["score"], reverse=True)
+
+    return render_template("ranking.html", grouped=grouped)
+
 @app.route('/login', methods=['POST'])
 def login():
     try:
