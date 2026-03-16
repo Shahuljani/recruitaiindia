@@ -188,6 +188,23 @@ def add_job():
                 "created_at": datetime.utcnow()
             })
     return redirect('/job_roles')
+@app.route('/admin')
+def admin():
+
+    if 'user' not in session:
+        return redirect('/')
+
+    uid = session['user']['id']
+
+    jobs = list(db.collection("job_roles").where("user_id","==",uid).stream())
+    cands = list(db.collection("candidates").where("user_id","==",uid).stream())
+
+    stats = {
+        "jobs": len(jobs),
+        "cands": len(cands)
+    }
+
+    return render_template("admin.html", stats=stats)
 
 @app.route('/delete_job', methods=['POST'])
 def delete_job():
