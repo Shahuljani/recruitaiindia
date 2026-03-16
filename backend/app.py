@@ -68,6 +68,30 @@ def signup():
         flash(str(e), "error")
     return redirect('/')
 
+@app.route('/delete_all_data', methods=['POST'])
+def delete_all_data():
+
+    if 'user' not in session:
+        return redirect('/')
+
+    uid = session['user']['id']
+
+    batch = db.batch()
+
+    # candidates
+    for doc in db.collection("candidates").where("user_id","==",uid).stream():
+        batch.delete(doc.reference)
+
+    # jobs
+    for doc in db.collection("job_roles").where("user_id","==",uid).stream():
+        batch.delete(doc.reference)
+
+    batch.commit()
+
+    flash("All data deleted successfully.", "success")
+
+    return redirect('/admin')
+
 @app.route('/ranking')
 def ranking():
 
@@ -205,6 +229,7 @@ def admin():
     }
 
     return render_template("admin.html", stats=stats)
+
 
 @app.route('/delete_job', methods=['POST'])
 def delete_job():
