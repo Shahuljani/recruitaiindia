@@ -9,7 +9,15 @@
 </head>
 
 <body class="bg-gray-100">
-
+    
+    <!-- 🔝 HEADER -->
+<header class="w-full bg-white shadow-md fixed top-0 left-0 z-50">
+    <div class="w-full">
+        <img src="{{ url_for('static', filename='header.png') }}" 
+             class="w-full h-auto object-cover"
+             alt="College Header">
+    </div>
+</header>
 <div class="{% if session.get('user') %}flex{% endif %}">
 
     {% if session.get('user') %}
