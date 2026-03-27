@@ -1,25 +1,101 @@
 <!-- FOOTER -->
-<footer class="bg-slate-900 text-white mt-10">
-    
-    <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
-        
-        <!-- Left -->
-        <div class="text-sm text-gray-400">
-            © 2026 RecruitAI. All rights reserved.
-        </div>
+<style>
+  .site-footer {
+    background: #000;
+    border-top: 1px solid #2a2a2a;
+    position: relative;
+    overflow: hidden;
+  }
 
-        <!-- Center -->
-        <div class="text-sm">
-            Built for Smart Recruitment System
-        </div>
+  /* red laser top line */
+  .site-footer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e01b24, transparent);
+    box-shadow: 0 0 16px rgba(224,27,36,0.4);
+  }
 
-        <!-- Right -->
-        <div class="flex gap-4 text-lg">
-            <a href="#" class="hover:text-blue-400"><i class="fab fa-linkedin"></i></a>
-            <a href="#" class="hover:text-blue-400"><i class="fab fa-github"></i></a>
-            <a href="#" class="hover:text-blue-400"><i class="fas fa-envelope"></i></a>
-        </div>
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 22px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
 
+  /* left — logo mark */
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: rgba(240,240,240,0.4);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .footer-logo span { color: #e01b24; }
+
+  /* center — copyright */
+  .footer-copy {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.25);
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  /* right — social icons */
+  .footer-socials {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .f-icon {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(240,240,240,0.3);
+    font-size: 13px;
+    border: 1px solid #2a2a2a;
+    text-decoration: none;
+    transition: all 0.2s;
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  }
+
+  .f-icon:hover {
+    color: #fff;
+    border-color: #e01b24;
+    background: rgba(224,27,36,0.12);
+    box-shadow: 0 0 14px rgba(224,27,36,0.3);
+  }
+</style>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+
+    <div class="footer-logo">
+      [<span>R</span>ecruitAI]
     </div>
 
+    <div class="footer-copy">
+      © 2026 RecruitAI · Smart Recruitment System
+    </div>
+
+    <div class="footer-socials">
+      <a href="#" class="f-icon"><i class="fab fa-linkedin"></i></a>
+      <a href="#" class="f-icon"><i class="fab fa-github"></i></a>
+      <a href="#" class="f-icon"><i class="fas fa-envelope"></i></a>
+    </div>
+
+  </div>
 </footer>

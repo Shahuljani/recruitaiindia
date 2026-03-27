@@ -6,38 +6,96 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+
+    <style>
+        /* ── Override Tailwind's bg-gray-100 with the dark theme ── */
+        html, body {
+            background: #000000 !important;
+            color: #f0f0f0 !important;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* ── Sidebar dark styling to match theme ── */
+        aside {
+            background: #0a0a0a !important;
+            border-right: 1px solid #2a2a2a !important;
+        }
+
+        aside h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 3px;
+            color: #e01b24 !important;
+        }
+
+        aside nav a {
+            color: rgba(240,240,240,0.65) !important;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-left: 2px solid transparent;
+            transition: all 0.2s;
+            display: block;
+        }
+
+        aside nav a:hover {
+            color: #fff !important;
+            border-left-color: #e01b24;
+            background: rgba(224,27,36,0.06);
+            padding-left: 18px;
+        }
+
+        aside nav a.text-red-400 {
+            color: #e01b24 !important;
+        }
+
+        /* ── Main content area ── */
+        main {
+            background: #000000;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100">
-    
+<body class="flex flex-col min-h-screen">
+
     <!-- HEADER INCLUDE -->
     {% include "header.html" %}
-<div class="{% if session.get('user') %}flex{% endif %}">
 
-    {% if session.get('user') %}
-    <!-- Sidebar -->
-    <aside class="w-64 bg-slate-900 text-white min-h-screen p-5">
-        <h1 class="text-2xl font-bold mb-8">RecruitAI</h1>
-        <nav class="space-y-4">
-            <a href="/dashboard" class="block hover:text-blue-400">Dashboard</a>
-            <a href="/job_roles" class="block hover:text-blue-400">Job Roles</a>
-            <a href="/ai_screening" class="block hover:text-blue-400">AI Screening</a>
-            <a href="/candidates" class="block hover:text-blue-400">Candidates</a>
-            <a href="/ranking" class="block hover:text-blue-400">Ranking</a>
-            <a href="/admin" class="block hover:text-blue-400">Admin</a>
-            <a href="/logout" class="block text-red-400 mt-8">Logout</a>
-        </nav>
-    </aside>
-    {% endif %}
+    <!-- MAIN WRAPPER -->
+    <div class="{% if session.get('user') %}flex{% endif %} pt-32 flex-1">
 
-    <!-- MAIN CONTENT (ONLY ONE BLOCK IN WHOLE FILE) -->
-    <main class="{% if session.get('user') %}flex-1 p-10{% endif %}">
-        {% block content %}{% endblock %}
-                <!-- FOOTER INCLUDE -->
+        {% if session.get('user') %}
+        <!-- Sidebar -->
+        <aside class="w-64 min-h-screen p-5 hidden md:block">
+            <h1 class="text-2xl font-bold mb-8">RecruitAI</h1>
+            <nav class="space-y-4">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/job_roles">Job Roles</a>
+                <a href="/ai_screening">AI Screening</a>
+                <a href="/candidates">Candidates</a>
+                <a href="/ranking">Ranking</a>
+                <a href="/admin">Admin</a>
+                <a href="/logout" class="text-red-400 mt-8">Logout</a>
+            </nav>
+        </aside>
+        {% endif %}
+
+        <!-- MAIN CONTENT -->
+        <main class="{% if session.get('user') %}flex-1 p-5 md:p-10{% else %}w-full{% endif %} flex flex-col">
+
+            <!-- PAGE CONTENT -->
+            <div class="flex-1">
+                {% block content %}{% endblock %}
+            </div>
+
+            <!-- FOOTER INCLUDE -->
             {% include "footer.html" %}
-    </main>
 
-</div>
+        </main>
+
+    </div>
 
 </body>
 </html>

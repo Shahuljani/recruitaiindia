@@ -1,11 +1,711 @@
 <!-- HEADER -->
-<header class="w-full bg-white shadow-md fixed top-0 left-0 z-50">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
 
-    <!-- College Strip -->
-    <div class="w-full">
-        <img src="{{ url_for('static', filename='header.png') }}" 
-             class="w-full h-auto object-cover"
-             alt="College Header">
+  :root {
+    --red: #e01b24;
+    --red-dark: #a01010;
+    --red-glow: rgba(224, 27, 36, 0.35);
+    --black: #000000;
+    --black-soft: #0a0a0a;
+    --grey: #1a1a1a;
+    --grey-mid: #2a2a2a;
+    --white: #f0f0f0;
+    --white-dim: rgba(240,240,240,0.65);
+    --header-h: 64px;
+  }
+
+  /* ── COLLEGE STRIP ── */
+  .college-strip {
+    width: 100%;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+    line-height: 0;
+  }
+
+  .college-strip img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* thin red laser line under the strip */
+  .college-strip::after {
+    content: '';
+    display: block;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--red) 30%, #ff4444 50%, var(--red) 70%, transparent 100%);
+    box-shadow: 0 0 12px var(--red-glow);
+    animation: laser-scan 3s linear infinite;
+    background-size: 200% 100%;
+  }
+
+  @keyframes laser-scan {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── MAIN NAVBAR ── */
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+  }
+
+  /* the college strip inside header — NOT fixed, scrolls away */
+  .header-college {
+    width: 100%;
+    background: #fff;
+    line-height: 0;
+    position: relative;
+  }
+
+  .header-college img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+  }
+
+  .header-college::after {
+    content: '';
+    display: block;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red), #ff4444, var(--red), transparent);
+    background-size: 200% 100%;
+    box-shadow: 0 0 10px var(--red-glow);
+    animation: laser-scan 3s linear infinite;
+  }
+
+  /* ── NAV BAR ── */
+  .navbar {
+    background: var(--black);
+    border-bottom: 1px solid var(--grey-mid);
+    height: var(--header-h);
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    overflow: visible;
+  }
+
+  /* animated scanline behind navbar */
+  .navbar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(255,255,255,0.012) 3px,
+      rgba(255,255,255,0.012) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* red top border glow */
+  .navbar::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+    box-shadow: 0 0 20px var(--red-glow);
+  }
+
+  .navbar-inner {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+    gap: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── LOGO ── */
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    text-decoration: none;
+    padding-right: 24px;
+    border-right: 1px solid var(--grey-mid);
+    margin-right: 4px;
+    height: 100%;
+    position: relative;
+  }
+
+  .logo-bracket {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 24px;
+    color: var(--red);
+    line-height: 1;
+    opacity: 0.7;
+  }
+
+  .logo-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 3px;
+    color: var(--white);
+    padding: 0 4px;
+    text-shadow: 0 0 20px var(--red-glow);
+    position: relative;
+  }
+
+  /* glitch effect on logo */
+  .logo-text::before,
+  .logo-text::after {
+    content: 'RecruitAI';
+    position: absolute;
+    top: 0; left: 4px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 3px;
+  }
+
+  .logo-text::before {
+    color: var(--red);
+    clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+    animation: glitch-1 4s infinite;
+    opacity: 0;
+  }
+
+  .logo-text::after {
+    color: #00ffff;
+    clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%);
+    animation: glitch-2 4s infinite;
+    opacity: 0;
+  }
+
+  @keyframes glitch-1 {
+    0%, 92%, 100% { opacity: 0; transform: translateX(0); }
+    93%           { opacity: 0.8; transform: translateX(-3px); }
+    95%           { opacity: 0.8; transform: translateX(3px); }
+    97%           { opacity: 0; }
+  }
+
+  @keyframes glitch-2 {
+    0%, 92%, 100% { opacity: 0; transform: translateX(0); }
+    94%           { opacity: 0.6; transform: translateX(4px); }
+    96%           { opacity: 0.6; transform: translateX(-2px); }
+    98%           { opacity: 0; }
+  }
+
+  .logo-ai-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: #fff;
+    background: var(--red);
+    padding: 2px 5px;
+    margin-left: 2px;
+    align-self: flex-start;
+    margin-top: 14px;
+    clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+  }
+
+  /* ── STATUS TICKER (replaces old tagline) ── */
+  .status-ticker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px;
+    border-right: 1px solid var(--grey-mid);
+    height: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 8px #4ade80;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .ticker-wrap {
+    overflow: hidden;
+    width: 260px;
+    white-space: nowrap;
+    position: relative;
+  }
+
+  .ticker-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--white-dim);
+    display: inline-block;
+    animation: ticker-swap 0.4s ease forwards;
+  }
+
+  .ticker-text.exit {
+    animation: ticker-exit 0.4s ease forwards;
+  }
+
+  @keyframes ticker-exit {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-12px); }
+  }
+
+  @keyframes ticker-swap {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* spacer */
+  .nav-spacer { flex: 1; }
+
+  /* ── NAV LINKS (logged in) ── */
+  .nav-links {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    height: 100%;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 16px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    text-decoration: none;
+    position: relative;
+    border-left: 1px solid transparent;
+    transition: color 0.2s, background 0.2s;
+    white-space: nowrap;
+  }
+
+  .nav-link .nav-icon {
+    font-size: 12px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+    box-shadow: 0 0 10px var(--red-glow);
+  }
+
+  .nav-link:hover {
+    color: #fff;
+    background: rgba(224,27,36,0.07);
+    border-left-color: rgba(224,27,36,0.2);
+  }
+
+  .nav-link:hover .nav-icon { opacity: 1; }
+  .nav-link:hover::after { transform: scaleX(1); }
+
+  /* active link */
+  .nav-link.active {
+    color: var(--red);
+    background: rgba(224,27,36,0.06);
+  }
+
+  .nav-link.active::after { transform: scaleX(1); }
+
+  /* logout — danger style */
+  .nav-link.danger {
+    color: var(--red);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    border-left: 1px solid rgba(224,27,36,0.3);
+    padding: 0 18px;
+    margin-left: 6px;
+    clip-path: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .nav-link.danger::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--red);
+    transform: translateX(-101%);
+    transition: transform 0.25s ease;
+    z-index: 0;
+  }
+
+  .nav-link.danger:hover {
+    color: #fff;
+    background: transparent;
+    border-left-color: var(--red);
+  }
+
+  .nav-link.danger:hover::before { transform: translateX(0); }
+  .nav-link.danger span { position: relative; z-index: 1; }
+  .nav-link.danger::after { display: none; }
+
+  /* ── SYSTEM READOUT (right side, logged-out) ── */
+  .system-readout {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 20px;
+    height: 100%;
+  }
+
+  .readout-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .readout-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.25);
+    text-transform: uppercase;
+  }
+
+  .readout-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--red);
+    letter-spacing: 1px;
+  }
+
+  .readout-value.green { color: #4ade80; }
+
+  /* ── HAMBURGER ── */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 44px;
+    height: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 12px;
+    border-left: 1px solid var(--grey-mid);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hamburger::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--red);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.2s;
+    z-index: 0;
+  }
+
+  .hamburger:hover::before { transform: scaleY(1); }
+
+  .bar {
+    width: 22px;
+    height: 2px;
+    background: var(--white);
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hamburger.open .bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .hamburger.open .bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ── MOBILE DRAWER ── */
+  .mobile-drawer {
+    display: none;
+    background: var(--black-soft);
+    border-bottom: 1px solid var(--grey-mid);
+    border-top: 1px solid rgba(224,27,36,0.2);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .mobile-drawer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+  }
+
+  .mobile-drawer.open { max-height: 500px; }
+
+  .drawer-inner {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mobile-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .mobile-link:hover {
+    color: #fff;
+    border-left-color: var(--red);
+    background: rgba(224,27,36,0.06);
+    padding-left: 22px;
+  }
+
+  .mobile-link .ml-icon {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 1px;
+    min-width: 28px;
+  }
+
+  .mobile-link.danger-mobile {
+    color: var(--red);
+    border-left: 2px solid rgba(224,27,36,0.4);
+    margin-top: 10px;
+  }
+
+  .mobile-link.danger-mobile:hover { border-left-color: var(--red); }
+
+  /* separator in mobile */
+  .drawer-sep {
+    height: 1px;
+    background: var(--grey-mid);
+    margin: 10px 0;
+  }
+
+  /* motivational ticker in mobile */
+  .mobile-ticker {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.3);
+    padding: 10px 16px;
+    border-left: 2px solid var(--grey-mid);
+    margin-top: 8px;
+    min-height: 18px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .status-ticker { display: none; }
+    .system-readout { display: none; }
+  }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none !important; }
+    .hamburger { display: flex; }
+    .mobile-drawer { display: block; }
+  }
+</style>
+
+<header class="site-header">
+
+  <!-- College Image Strip -->
+  <div class="header-college">
+    <img src="{{ url_for('static', filename='header.png') }}" alt="College Header">
+  </div>
+
+  <!-- Main Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+
+      <!-- Logo -->
+      <a href="/" class="nav-logo">
+        <span class="logo-bracket">[</span>
+        <span class="logo-text">RecruitAI</span>
+        <span class="logo-ai-badge">v2</span>
+        <span class="logo-bracket">]</span>
+      </a>
+
+      <!-- Status ticker — always visible on desktop -->
+      <div class="status-ticker">
+        <div class="status-dot"></div>
+        <div class="ticker-wrap">
+          <span class="ticker-text" id="navTicker">SYSTEM ONLINE</span>
+        </div>
+      </div>
+
+      <div class="nav-spacer"></div>
+
+      {% if session.get('user') %}
+      <!-- ── LOGGED IN NAV ── -->
+      <div class="nav-links">
+        <a href="/dashboard"    class="nav-link"><span class="nav-icon">◈</span>Dashboard</a>
+        <a href="/job_roles"    class="nav-link"><span class="nav-icon">◈</span>Job Roles</a>
+        <a href="/ai_screening" class="nav-link"><span class="nav-icon">◈</span>AI Screen</a>
+        <a href="/candidates"   class="nav-link"><span class="nav-icon">◈</span>Candidates</a>
+        <a href="/ranking"      class="nav-link"><span class="nav-icon">◈</span>Ranking</a>
+        <a href="/admin"        class="nav-link"><span class="nav-icon">◈</span>Admin</a>
+        <a href="/logout"       class="nav-link danger"><span>⏻ Logout</span></a>
+      </div>
+
+      {% else %}
+      <!-- ── LOGGED OUT: system readout ── -->
+      <div class="system-readout">
+        <div class="readout-block">
+          <span class="readout-label">Match Engine</span>
+          <span class="readout-value green">● ACTIVE</span>
+        </div>
+        <div class="readout-block">
+          <span class="readout-label">AI Model</span>
+          <span class="readout-value">TF-IDF v3</span>
+        </div>
+        <div class="readout-block">
+          <span class="readout-label">Uptime</span>
+          <span class="readout-value" id="uptimeCounter">00:00:00</span>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Hamburger -->
+      <button class="hamburger" id="hamburgerBtn" onclick="toggleDrawer()" aria-label="Menu">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </button>
+
     </div>
+  </nav>
+
+  <!-- Mobile Drawer -->
+  <div class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-inner">
+
+      {% if session.get('user') %}
+        <a href="/dashboard"    class="mobile-link"><span class="ml-icon">01</span>Dashboard</a>
+        <a href="/job_roles"    class="mobile-link"><span class="ml-icon">02</span>Job Roles</a>
+        <a href="/ai_screening" class="mobile-link"><span class="ml-icon">03</span>AI Screen</a>
+        <a href="/candidates"   class="mobile-link"><span class="ml-icon">04</span>Candidates</a>
+        <a href="/ranking"      class="mobile-link"><span class="ml-icon">05</span>Ranking</a>
+        <a href="/admin"        class="mobile-link"><span class="ml-icon">06</span>Admin</a>
+        <div class="drawer-sep"></div>
+        <a href="/logout" class="mobile-link danger-mobile"><span class="ml-icon">⏻</span>Logout</a>
+      {% else %}
+        <div class="mobile-ticker" id="mobileTicker">INITIALIZING...</div>
+      {% endif %}
+
+    </div>
+  </div>
 
 </header>
+
+
+<!-- ─────────────────────────────────────
+     HEADER SCRIPTS
+───────────────────────────────────────── -->
+<script>
+/* ── Hamburger toggle ── */
+function toggleDrawer() {
+  const drawer = document.getElementById('mobileDrawer');
+  const btn    = document.getElementById('hamburgerBtn');
+  drawer.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+
+/* ── Nav link active state ── */
+(function highlightActive() {
+  const links = document.querySelectorAll('.nav-link:not(.danger), .mobile-link:not(.danger-mobile)');
+  const path  = window.location.pathname;
+  links.forEach(link => {
+    if (link.getAttribute('href') === path) link.classList.add('active');
+  });
+})();
+</script>
+
+<!-- Ticker (shared between desktop & mobile) -->
+<script>
+const tickerMessages = [
+  "AI MATCH ENGINE — ONLINE",
+  "EMPOWERING SMART HIRING",
+  "SCREENING 10× FASTER",
+  "98% MATCH ACCURACY",
+  "BIAS-FREE CANDIDATE SCORING",
+  "YOUR DREAM HIRE IS HERE",
+  "TRANSFORMING CAMPUS PLACEMENTS",
+  "TF-IDF COSINE ENGINE READY"
+];
+
+let tickIdx = 0;
+
+function rotateTicker() {
+  tickIdx = (tickIdx + 1) % tickerMessages.length;
+  const desktopEl = document.getElementById('navTicker');
+  const mobileEl  = document.getElementById('mobileTicker');
+
+  [desktopEl, mobileEl].forEach(el => {
+    if (!el) return;
+    el.classList.add('exit');
+    setTimeout(() => {
+      el.textContent = tickerMessages[tickIdx];
+      el.classList.remove('exit');
+    }, 380);
+  });
+}
+
+setInterval(rotateTicker, 2800);
+</script>
+
+<!-- Uptime counter (logged-out only) -->
+{% if not session.get('user') %}
+<script>
+(function() {
+  const start = Date.now();
+  const el = document.getElementById('uptimeCounter');
+  if (!el) return;
+  setInterval(() => {
+    const s = Math.floor((Date.now() - start) / 1000);
+    const h = String(Math.floor(s / 3600)).padStart(2, '0');
+    const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+    const sec = String(s % 60).padStart(2, '0');
+    el.textContent = `${h}:${m}:${sec}`;
+  }, 1000);
+})();
+</script>
+{% endif %}

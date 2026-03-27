@@ -1,59 +1,1601 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-900 to-slate-900">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
 
-    <div class="bg-white p-8 rounded-xl shadow-xl w-96">
-        <h2 class="text-2xl font-bold mb-6 text-center">RecruitAI Login</h2>
+  :root {
+    --red: #e01b24;
+    --red-dark: #a01010;
+    --red-glow: rgba(224, 27, 36, 0.35);
+    --black: #000000;
+    --black-soft: #0a0a0a;
+    --black-card: rgba(10, 10, 10, 0.88);
+    --grey: #1a1a1a;
+    --grey-mid: #2a2a2a;
+    --white: #f0f0f0;
+    --white-dim: rgba(240,240,240,0.65);
+  }
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="mb-3 p-2 text-sm rounded 
-                    {% if category == 'success' %}bg-green-100 text-green-700
-                    {% else %}bg-red-100 text-red-700{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-        {% endwith %}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        <!-- Email Login -->
-        <form action="/login" method="POST" class="space-y-4">
-            <input type="email" name="email" placeholder="Email" required class="w-full p-2 border rounded">
-            <input type="password" name="password" placeholder="Password" required class="w-full p-2 border rounded">
-            <button class="w-full bg-blue-600 text-white p-2 rounded">Login</button>
-        </form>
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
 
-        <!-- Google Login -->
-        <button onclick="googleLogin()" 
-        class="w-full bg-red-500 text-white p-2 rounded mt-4 flex items-center justify-center">
-            <i class="fab fa-google mr-2"></i> Login with Google
-        </button>
+  /* ─── VIDEO HERO ─── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
 
-        <p class="text-sm text-center mt-6">
-            New user? Sign up below
-        </p>
+  #bg-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    filter: brightness(0.35) saturate(0.6);
+  }
 
-        <!-- Signup -->
-        <form action="/signup" method="POST" class="space-y-3 mt-2">
-            <input type="email" name="email" placeholder="Email" required class="w-full p-2 border rounded">
-            <input type="password" name="password" placeholder="Password" required class="w-full p-2 border rounded">
-            <button class="w-full bg-green-600 text-white p-2 rounded">Sign Up</button>
-        </form>
+  .video-fade {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 55%;
+    background: linear-gradient(to bottom, transparent, var(--black));
+    z-index: 1;
+    pointer-events: none;
+  }
 
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(180,10,10,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.55) 0%, transparent 70%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 80px;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    padding: 40px 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* ─── HERO LEFT ─── */
+  .hero-brand { flex: 1; min-width: 280px; max-width: 480px; }
+
+  .brand-chip {
+    display: inline-block;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    padding: 5px 14px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(60px, 9vw, 110px);
+    line-height: 0.9;
+    letter-spacing: 2px;
+    color: var(--white);
+    text-shadow: 0 0 60px var(--red-glow);
+    margin-bottom: 6px;
+  }
+
+  .hero-title span { color: var(--red); display: block; }
+
+  .hero-subtitle {
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--white-dim);
+    line-height: 1.65;
+    margin-top: 18px;
+    max-width: 380px;
+    letter-spacing: 0.3px;
+  }
+
+  .hero-stats { display: flex; gap: 30px; margin-top: 36px; flex-wrap: wrap; }
+
+  .stat { border-left: 2px solid var(--red); padding-left: 14px; }
+
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--red);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* ─── LOGIN CARD ─── */
+  .login-card {
+    background: var(--black-card);
+    border: 1px solid rgba(224, 27, 36, 0.25);
+    border-top: 2px solid var(--red);
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 380px;
+    backdrop-filter: blur(16px);
+    position: relative;
+    box-shadow: 0 0 60px rgba(224,27,36,0.12), 0 30px 80px rgba(0,0,0,0.8);
+  }
+
+  .login-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+  }
+
+  .card-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 1.5px;
+    color: var(--white);
+    margin-bottom: 28px;
+  }
+
+  .flash { padding: 8px 12px; font-size: 13px; border-radius: 2px; margin-bottom: 14px; font-weight: 500; }
+  .flash-success { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+  .flash-error { background: rgba(224,27,36,0.12); border: 1px solid rgba(224,27,36,0.35); color: #f87171; }
+
+  .form-group { margin-bottom: 14px; }
+
+  .form-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--grey-mid);
+    border-bottom: 1px solid rgba(224,27,36,0.4);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .form-input:focus {
+    background: rgba(224,27,36,0.06);
+    border-color: var(--red);
+    border-bottom-color: var(--red);
+  }
+
+  .form-input::placeholder { color: rgba(240,240,240,0.3); }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2.5px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: var(--red);
+    color: #fff;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+
+  .btn-primary:hover { background: #c5171f; box-shadow: 0 0 30px var(--red-glow); }
+
+  .btn-google {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--white);
+    margin-top: 10px;
+  }
+
+  .btn-google:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: 22px 0 18px; }
+  .divider-line { flex: 1; height: 1px; background: var(--grey-mid); }
+  .divider-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.3);
+    text-transform: uppercase;
+  }
+
+  /* ─── SCROLL INDICATOR ─── */
+  .scroll-hint {
+    position: absolute;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: bounce 2s infinite;
+  }
+
+  .scroll-hint span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--white-dim);
+    text-transform: uppercase;
+  }
+
+  .scroll-arrow {
+    width: 18px; height: 18px;
+    border-right: 2px solid var(--red);
+    border-bottom: 2px solid var(--red);
+    transform: rotate(45deg);
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%       { transform: translateX(-50%) translateY(8px); }
+  }
+
+  /* ─── SECTIONS ─── */
+  section {
+    padding: 100px 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-chip {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-chip::before {
+    content: '';
+    display: inline-block;
+    width: 28px; height: 2px;
+    background: var(--red);
+  }
+
+  .section-heading {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(44px, 6vw, 72px);
+    line-height: 0.95;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  .section-heading em { color: var(--red); font-style: normal; }
+
+  .section-body {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--white-dim);
+    max-width: 580px;
+  }
+
+  /* ─── HOW IT WORKS ─── */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2px;
+    margin-top: 60px;
+    border: 1px solid var(--grey-mid);
+  }
+
+  .step {
+    background: var(--black-soft);
+    padding: 40px 30px;
+    border-right: 1px solid var(--grey-mid);
+    position: relative;
+    transition: background 0.3s;
+  }
+
+  .step:hover { background: #111; }
+  .step:last-child { border-right: none; }
+
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 70px;
+    color: rgba(224,27,36,0.15);
+    line-height: 1;
+    position: absolute;
+    top: 14px; right: 20px;
+  }
+
+  .step-icon {
+    width: 46px; height: 46px;
+    background: rgba(224,27,36,0.12);
+    border: 1px solid rgba(224,27,36,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+
+  .step-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    color: var(--white);
+  }
+
+  .step-desc { font-size: 14px; color: var(--white-dim); line-height: 1.6; }
+
+  /* ─── FEATURES ─── */
+  .features-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    margin-top: 60px;
+  }
+
+  @media (max-width: 768px) { .features-wrap { grid-template-columns: 1fr; } }
+
+  .feature-list { display: flex; flex-direction: column; gap: 4px; }
+
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    border: 1px solid transparent;
+    transition: all 0.3s;
+    cursor: default;
+  }
+
+  .feature-item:hover {
+    border-color: rgba(224,27,36,0.3);
+    background: rgba(224,27,36,0.04);
+  }
+
+  .feature-icon {
+    width: 40px; height: 40px;
+    min-width: 40px;
+    background: var(--red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #fff;
+    clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+  }
+
+  .feature-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .feature-desc { font-size: 14px; color: var(--white-dim); line-height: 1.5; }
+
+  /* ─── TERMINAL ─── */
+  .terminal {
+    background: #000;
+    border: 1px solid var(--grey-mid);
+    border-top: 2px solid var(--red);
+    padding: 28px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    color: #ccc;
+    position: relative;
+  }
+
+  .terminal::before {
+    content: '● ● ●';
+    display: block;
+    font-size: 10px;
+    color: var(--grey-mid);
+    margin-bottom: 16px;
+    letter-spacing: 4px;
+  }
+
+  .t-red   { color: var(--red); }
+  .t-green { color: #4ade80; }
+  .t-dim   { color: rgba(204,204,204,0.4); }
+
+  /* ─── STATS STRIP ─── */
+  .stats-strip { background: var(--red); padding: 60px 30px; }
+
+  .stats-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+  }
+
+  @media (max-width: 600px) { .stats-inner { grid-template-columns: 1fr 1fr; } }
+
+  .strip-stat {
+    text-align: center;
+    padding: 20px;
+    border-right: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .strip-stat:last-child { border-right: none; }
+
+  .strip-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 58px;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .strip-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.75);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* ─── TECH ─── */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2px;
+    margin-top: 50px;
+  }
+
+  .tech-card {
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    padding: 30px 20px;
+    text-align: center;
+    transition: border-color 0.3s, background 0.3s;
+  }
+
+  .tech-card:hover { border-color: rgba(224,27,36,0.4); background: #111; }
+
+  .tech-icon {
+    font-size: 26px;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+
+  .tech-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .tech-role { font-size: 12px; color: var(--white-dim); letter-spacing: 1px; }
+
+  /* ─── WORKFLOW ─── */
+  .workflow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 60px;
+    border: 1px solid var(--grey-mid);
+  }
+
+  .wf-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    border-bottom: 1px solid var(--grey-mid);
+    transition: background 0.3s;
+  }
+
+  .wf-row:last-child { border-bottom: none; }
+  .wf-row:hover { background: rgba(224,27,36,0.03); }
+
+  .wf-num {
+    background: var(--grey);
+    border-right: 1px solid var(--grey-mid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--red);
+  }
+
+  .wf-content { padding: 24px 28px; }
+
+  .wf-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .wf-desc { font-size: 14px; color: var(--white-dim); line-height: 1.5; }
+
+  /* ─── CTA ─── */
+  .cta-section {
+    background: var(--black-soft);
+    border-top: 1px solid var(--grey-mid);
+    border-bottom: 1px solid var(--grey-mid);
+    padding: 100px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-section::before {
+    content: 'RECRUIT';
+    position: absolute;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 300px;
+    color: rgba(224,27,36,0.04);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    white-space: nowrap;
+    letter-spacing: 20px;
+  }
+
+  .cta-inner { position: relative; z-index: 1; }
+
+  .cta-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 6vw, 80px);
+    margin-bottom: 16px;
+  }
+
+  .cta-sub { font-size: 17px; color: var(--white-dim); margin-bottom: 40px; }
+
+  .cta-btn {
+    display: inline-block;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    padding: 16px 50px;
+    text-decoration: none;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+    transition: background 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .cta-btn:hover { background: #c5171f; box-shadow: 0 0 50px var(--red-glow); }
+
+  .sep {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--grey-mid), transparent);
+  }
+
+  /* ══════════════════════════════════════
+     NEW SECTION: WHY AI HIRING
+  ══════════════════════════════════════ */
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2px;
+    margin-top: 60px;
+  }
+
+  .why-card {
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    padding: 36px 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, background 0.3s;
+  }
+
+  .why-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--red);
+    transition: width 0.4s ease;
+  }
+
+  .why-card:hover { background: #111; border-color: rgba(224,27,36,0.3); }
+  .why-card:hover::after { width: 100%; }
+
+  .why-icon {
+    width: 50px; height: 50px;
+    border: 1px solid rgba(224,27,36,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    color: var(--red);
+    margin-bottom: 22px;
+    position: relative;
+  }
+
+  .why-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(224,27,36,0.08);
+  }
+
+  .why-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    color: var(--white);
+  }
+
+  .why-desc { font-size: 14px; color: var(--white-dim); line-height: 1.65; }
+
+  /* ══════════════════════════════════════
+     NEW SECTION: SCORE BREAKDOWN
+  ══════════════════════════════════════ */
+  .score-section {
+    padding: 100px 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .score-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 50px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+  }
+
+  .score-table thead tr {
+    border-bottom: 2px solid var(--red);
+  }
+
+  .score-table th {
+    text-align: left;
+    padding: 14px 20px;
+    color: var(--red);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 400;
+  }
+
+  .score-table tbody tr {
+    border-bottom: 1px solid var(--grey-mid);
+    transition: background 0.2s;
+  }
+
+  .score-table tbody tr:hover { background: rgba(224,27,36,0.04); }
+
+  .score-table td {
+    padding: 18px 20px;
+    color: var(--white-dim);
+    vertical-align: middle;
+  }
+
+  .score-table td:first-child {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--white);
+    letter-spacing: 1px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  }
+
+  .badge-green { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
+  .badge-yellow { background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3); color: #fbbf24; }
+  .badge-red { background: rgba(224,27,36,0.12); border: 1px solid rgba(224,27,36,0.35); color: #f87171; }
+
+  .score-bar-wrap {
+    height: 4px;
+    background: var(--grey-mid);
+    width: 160px;
+    position: relative;
+  }
+
+  .score-bar {
+    height: 100%;
+    position: absolute;
+    top: 0; left: 0;
+    transition: width 1s ease;
+  }
+
+  /* ══════════════════════════════════════
+     NEW SECTION: TESTIMONIALS / TRUST
+  ══════════════════════════════════════ */
+  .trust-section {
+    background: var(--black-soft);
+    border-top: 1px solid var(--grey-mid);
+    border-bottom: 1px solid var(--grey-mid);
+    padding: 100px 30px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .trust-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+  }
+
+  .trust-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2px;
+    margin-top: 60px;
+  }
+
+  .trust-card {
+    background: var(--black);
+    border: 1px solid var(--grey-mid);
+    padding: 36px 32px;
+    position: relative;
+    transition: border-color 0.3s;
+  }
+
+  .trust-card:hover { border-color: rgba(224,27,36,0.3); }
+
+  .trust-quote-icon {
+    font-size: 28px;
+    color: rgba(224,27,36,0.3);
+    margin-bottom: 18px;
+    display: block;
+  }
+
+  .trust-text {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--white-dim);
+    margin-bottom: 24px;
+    font-style: italic;
+  }
+
+  .trust-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid var(--grey-mid);
+    padding-top: 18px;
+  }
+
+  .trust-avatar {
+    width: 38px; height: 38px;
+    background: rgba(224,27,36,0.15);
+    border: 1px solid rgba(224,27,36,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  }
+
+  .trust-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+  }
+
+  .trust-role {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--red);
+    text-transform: uppercase;
+  }
+
+  /* ══════════════════════════════════════
+     NEW SECTION: FAQ
+  ══════════════════════════════════════ */
+  .faq-list {
+    margin-top: 60px;
+    border: 1px solid var(--grey-mid);
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--grey-mid);
+  }
+
+  .faq-item:last-child { border-bottom: none; }
+
+  .faq-question {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s;
+    color: var(--white);
+  }
+
+  .faq-question:hover { background: rgba(224,27,36,0.04); }
+
+  .faq-q-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.5px;
+  }
+
+  .faq-icon {
+    width: 28px; height: 28px;
+    border: 1px solid rgba(224,27,36,0.4);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: var(--red);
+    font-size: 12px;
+    transition: transform 0.3s, background 0.2s;
+  }
+
+  .faq-item.open .faq-icon {
+    transform: rotate(45deg);
+    background: rgba(224,27,36,0.15);
+  }
+
+  .faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .faq-item.open .faq-answer { max-height: 300px; }
+
+  .faq-answer-inner {
+    padding: 0 28px 24px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--white-dim);
+    border-top: 1px solid var(--grey-mid);
+    padding-top: 20px;
+  }
+
+  /* ══════════════════════════════════════
+     NEW SECTION: COMPARISON TABLE
+  ══════════════════════════════════════ */
+  .compare-wrap {
+    margin-top: 60px;
+    border: 1px solid var(--grey-mid);
+    overflow-x: auto;
+  }
+
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+  }
+
+  .compare-table th {
+    padding: 20px 24px;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    border-bottom: 1px solid var(--grey-mid);
+    border-right: 1px solid var(--grey-mid);
+  }
+
+  .compare-table th:last-child { border-right: none; }
+
+  .compare-table th.th-us {
+    background: rgba(224,27,36,0.08);
+    color: var(--red);
+    border-top: 2px solid var(--red);
+  }
+
+  .compare-table th.th-them { color: rgba(240,240,240,0.4); }
+  .compare-table th.th-label { text-align: left; color: var(--white-dim); }
+
+  .compare-table td {
+    padding: 16px 24px;
+    font-size: 14px;
+    color: var(--white-dim);
+    border-bottom: 1px solid var(--grey-mid);
+    border-right: 1px solid var(--grey-mid);
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .compare-table td:last-child { border-right: none; }
+  .compare-table td:first-child { text-align: left; color: var(--white); font-weight: 600; font-size: 14px; letter-spacing: 0.3px; }
+  .compare-table tbody tr:last-child td { border-bottom: none; }
+  .compare-table tbody tr:hover { background: rgba(224,27,36,0.03); }
+
+  .compare-table td.td-us { background: rgba(224,27,36,0.04); }
+
+  .c-yes { color: #4ade80; font-size: 15px; }
+  .c-no  { color: rgba(240,240,240,0.2); font-size: 15px; }
+  .c-partial { color: #fbbf24; font-size: 13px; font-family: 'Share Tech Mono', monospace; }
+
+</style>
+
+<!-- ══════════════════════════════════════════
+     HERO / LOGIN SECTION
+══════════════════════════════════════════ -->
+<div class="hero">
+
+  <video id="bg-video" autoplay muted loop playsinline>
+    <source src="{{ url_for('static', filename='bg-video.mp4') }}" type="video/mp4">
+  </video>
+
+  <div class="video-fade"></div>
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
+
+    <!-- Brand left -->
+    <div class="hero-brand">
+      <div class="brand-chip">AI-Powered Hiring</div>
+      <h1 class="hero-title">
+        Recruit
+        <span>Smarter.</span>
+      </h1>
+      <p class="hero-subtitle">
+        RecruitAI automates resume screening, ranks candidates against your job descriptions using machine intelligence, and cuts your hiring time from weeks to hours.
+      </p>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num">98%</div>
+          <div class="stat-label">Match Accuracy</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">10×</div>
+          <div class="stat-label">Faster Screening</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">Resumes / Upload</div>
+        </div>
+      </div>
     </div>
+
+    <!-- Login card right -->
+    <div class="login-card">
+
+      <div class="card-label">Access Portal</div>
+      <div class="card-title">Sign In</div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {% if category == 'success' %}flash-success{% else %}flash-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% endwith %}
+
+      <!-- Email Login -->
+      <form action="/login" method="POST">
+        <div class="form-group">
+          <input type="email" name="email" placeholder="Email address" required class="form-input">
+        </div>
+        <div class="form-group">
+          <input type="password" name="password" placeholder="Password" required class="form-input">
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+
+      <!-- Google Login -->
+      <button onclick="googleLogin()" class="btn btn-google">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-text">New here?</div>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="card-label">Create Account</div>
+
+      <!-- Signup -->
+      <form action="/signup" method="POST">
+        <div class="form-group">
+          <input type="email" name="email" placeholder="Email address" required class="form-input">
+        </div>
+        <div class="form-group">
+          <input type="password" name="password" placeholder="Choose password" required class="form-input">
+        </div>
+        <button type="submit" class="btn btn-primary" style="background:transparent; border:1px solid var(--red); color:var(--red);">
+          Create Account
+        </button>
+      </form>
+
+    </div><!-- /login-card -->
+
+  </div><!-- /hero-content -->
+
+  <div class="scroll-hint">
+    <span>Explore</span>
+    <div class="scroll-arrow"></div>
+  </div>
+
+</div><!-- /hero -->
+
+
+<!-- ══════════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════════ -->
+<section>
+  <div class="section-chip">How It Works</div>
+  <h2 class="section-heading">Four Steps to<br><em>Smarter Hiring</em></h2>
+  <p class="section-body">Upload job descriptions, upload resumes, and let the AI handle everything. No configuration. No training data required.</p>
+
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-icon"><i class="fas fa-file-pdf"></i></div>
+      <div class="step-title">Upload Job Roles</div>
+      <div class="step-desc">Upload job description PDFs directly. RecruitAI parses and indexes each role automatically for matching.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-icon"><i class="fas fa-robot"></i></div>
+      <div class="step-title">AI Screens Resumes</div>
+      <div class="step-desc">Bulk upload candidate resumes. The TF-IDF engine scores each resume against every job role in milliseconds.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-icon"><i class="fas fa-trophy"></i></div>
+      <div class="step-title">Review & Decide</div>
+      <div class="step-desc">Candidates are ranked and auto-labelled: Shortlisted, On Hold, or Rejected. Export to CSV with one click.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-icon"><i class="fas fa-chart-bar"></i></div>
+      <div class="step-title">Track & Manage</div>
+      <div class="step-desc">Update candidate statuses, view analytics from the dashboard, and manage all roles from a single hub.</div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ══════════════════════════════════════════
+     STATS STRIP
+══════════════════════════════════════════ -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="strip-stat">
+      <div class="strip-num">75+</div>
+      <div class="strip-label">Score = Shortlisted</div>
+    </div>
+    <div class="strip-stat">
+      <div class="strip-num">50–75</div>
+      <div class="strip-label">Score = On Hold</div>
+    </div>
+    <div class="strip-stat">
+      <div class="strip-num">&lt;50</div>
+      <div class="strip-label">Score = Rejected</div>
+    </div>
+    <div class="strip-stat">
+      <div class="strip-num">100%</div>
+      <div class="strip-label">Bias-Free Scoring</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FEATURES
+══════════════════════════════════════════ -->
+<section>
+  <div class="section-chip">Platform Features</div>
+  <h2 class="section-heading">Everything You Need<br>to <em>Hire at Scale</em></h2>
+
+  <div class="features-wrap">
+    <div class="feature-list">
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+        <div>
+          <div class="feature-title">PDF Resume Parsing</div>
+          <div class="feature-desc">Extracts full text from candidate PDFs automatically, capturing name, email, and all experience content.</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+        <div>
+          <div class="feature-title">TF-IDF Cosine Matching</div>
+          <div class="feature-desc">Industry-standard NLP technique that measures semantic similarity between job descriptions and resumes — fast and accurate.</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fas fa-crosshairs"></i></div>
+        <div>
+          <div class="feature-title">Auto Role Matching</div>
+          <div class="feature-desc">Each resume is automatically matched to the best-fit job role from your active listings, even with bulk uploads.</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fas fa-file-export"></i></div>
+        <div>
+          <div class="feature-title">CSV Export</div>
+          <div class="feature-desc">Download a full candidate report — name, email, matched role, AI score, and status — with one click.</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+        <div>
+          <div class="feature-title">Firebase Auth + Google SSO</div>
+          <div class="feature-desc">Secure email/password login and Google sign-in, powered by Firebase Auth. Your data stays private per user.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal mock -->
+    <div class="terminal">
+<span class="t-red">$</span> uploading resumes...
+<span class="t-dim">──────────────────────────</span>
+<span class="t-red">→</span> resume_01.pdf  <span class="t-green">✓ parsed</span>
+<span class="t-red">→</span> resume_02.pdf  <span class="t-green">✓ parsed</span>
+<span class="t-red">→</span> resume_03.pdf  <span class="t-green">✓ parsed</span>
+<span class="t-dim">──────────────────────────</span>
+<span class="t-red">$</span> running AI match...
+<span class="t-dim">──────────────────────────</span>
+candidate_01 → <span class="t-green">Backend Dev</span>  score: <span class="t-green">87.4</span> → Shortlisted
+candidate_02 → <span class="t-green">ML Engineer</span> score: <span class="t-red">62.1</span> → On Hold
+candidate_03 → <span class="t-green">Backend Dev</span>  score: <span class="t-red">38.9</span> → Rejected
+<span class="t-dim">──────────────────────────</span>
+<span class="t-red">$</span> export candidates.csv  <span class="t-green">✓ done</span>
+    </div>
+
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ══════════════════════════════════════════
+     NEW — WHY AI HIRING
+══════════════════════════════════════════ -->
+<section>
+  <div class="section-chip">Why AI Hiring</div>
+  <h2 class="section-heading">The Old Way<br>is <em>Broken.</em></h2>
+  <p class="section-body">Manual resume screening is slow, inconsistent, and biased. RecruitAI eliminates every bottleneck that costs you the best candidates.</p>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <div class="why-icon"><i class="fas fa-hourglass-half"></i></div>
+      <div class="why-title">No More Time Drain</div>
+      <div class="why-desc">Recruiters spend 23 hours screening resumes per hire on average. RecruitAI does it in seconds — freeing your team to focus on decisions, not data entry.</div>
+    </div>
+    <div class="why-card">
+      <div class="why-icon"><i class="fas fa-balance-scale"></i></div>
+      <div class="why-title">Zero Bias, Full Fairness</div>
+      <div class="why-desc">Human reviewers unconsciously favour certain names, colleges, and formats. Our scoring engine sees only skills and relevance — nothing else.</div>
+    </div>
+    <div class="why-card">
+      <div class="why-icon"><i class="fas fa-layer-group"></i></div>
+      <div class="why-title">Scales to Any Volume</div>
+      <div class="why-desc">Whether you receive 10 or 10,000 applications, the AI processes every single one with the same accuracy and speed. No extra cost. No extra headcount.</div>
+    </div>
+    <div class="why-card">
+      <div class="why-icon"><i class="fas fa-sliders-h"></i></div>
+      <div class="why-title">Consistent Standards</div>
+      <div class="why-desc">Every candidate is evaluated against the exact same criteria derived directly from your job description. No more reviewer-to-reviewer variance.</div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ══════════════════════════════════════════
+     NEW — SCORE BREAKDOWN TABLE
+══════════════════════════════════════════ -->
+<section class="score-section">
+  <div class="section-chip">Scoring System</div>
+  <h2 class="section-heading">How Every<br><em>Score is Decided</em></h2>
+  <p class="section-body">Our TF-IDF cosine similarity engine produces a 0–100 relevance score for every resume. Here's exactly what each range means for your pipeline.</p>
+
+  <table class="score-table">
+    <thead>
+      <tr>
+        <th>Score Range</th>
+        <th>Status</th>
+        <th>What It Means</th>
+        <th>Recruiter Action</th>
+        <th>Signal Strength</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>75 – 100</td>
+        <td><span class="badge badge-green"><i class="fas fa-check-circle"></i> Shortlisted</span></td>
+        <td>Strong keyword and context overlap with the job description</td>
+        <td>Schedule interview immediately</td>
+        <td>
+          <div class="score-bar-wrap">
+            <div class="score-bar" style="width:90%; background:#4ade80;"></div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>50 – 74</td>
+        <td><span class="badge badge-yellow"><i class="fas fa-pause-circle"></i> On Hold</span></td>
+        <td>Partial match — candidate has some relevant skills but gaps exist</td>
+        <td>Review manually, consider for other roles</td>
+        <td>
+          <div class="score-bar-wrap">
+            <div class="score-bar" style="width:55%; background:#fbbf24;"></div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>0 – 49</td>
+        <td><span class="badge badge-red"><i class="fas fa-times-circle"></i> Rejected</span></td>
+        <td>Low semantic similarity — resume does not align with role requirements</td>
+        <td>Archive; send automated rejection</td>
+        <td>
+          <div class="score-bar-wrap">
+            <div class="score-bar" style="width:25%; background:#e01b24;"></div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="sep"></div>
+
+<!-- ══════════════════════════════════════════
+     WORKFLOW
+══════════════════════════════════════════ -->
+<section>
+  <div class="section-chip">Recruiter Workflow</div>
+  <h2 class="section-heading">Your Entire Pipeline<br><em>In One Place</em></h2>
+  <p class="section-body">RecruitAI maps directly to how real hiring teams work — from role creation to final decision.</p>
+
+  <div class="workflow">
+    <div class="wf-row">
+      <div class="wf-num">01</div>
+      <div class="wf-content">
+        <div class="wf-title">Create Job Role from PDF</div>
+        <div class="wf-desc">Upload any job description as a PDF. RecruitAI extracts and stores the full text for intelligent matching.</div>
+      </div>
+    </div>
+    <div class="wf-row">
+      <div class="wf-num">02</div>
+      <div class="wf-content">
+        <div class="wf-title">Bulk Upload Candidate Resumes</div>
+        <div class="wf-desc">Upload dozens of resumes at once. The AI screens all of them simultaneously, assigning each a relevance score from 0–100.</div>
+      </div>
+    </div>
+    <div class="wf-row">
+      <div class="wf-num">03</div>
+      <div class="wf-content">
+        <div class="wf-title">Review Ranked Candidates</div>
+        <div class="wf-desc">See every candidate ranked by score per role. Instantly identify your top talent without reading a single resume manually.</div>
+      </div>
+    </div>
+    <div class="wf-row">
+      <div class="wf-num">04</div>
+      <div class="wf-content">
+        <div class="wf-title">Update Statuses & Collaborate</div>
+        <div class="wf-desc">Manually override statuses, mark candidates as Shortlisted or On Hold, and keep your pipeline organized.</div>
+      </div>
+    </div>
+    <div class="wf-row">
+      <div class="wf-num">05</div>
+      <div class="wf-content">
+        <div class="wf-title">Export & Report</div>
+        <div class="wf-desc">Download the full candidate list as a CSV to share with stakeholders or import into your ATS.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ══════════════════════════════════════════
+     NEW — VS COMPARISON TABLE
+══════════════════════════════════════════ -->
+<section>
+  <div class="section-chip">Competitive Edge</div>
+  <h2 class="section-heading">RecruitAI vs<br><em>The Old Way</em></h2>
+  <p class="section-body">See exactly how AI-powered screening outperforms traditional manual review across every dimension that matters.</p>
+
+  <div class="compare-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th class="th-label">Feature</th>
+          <th class="th-us"><i class="fas fa-robot" style="margin-right:8px;"></i>RecruitAI</th>
+          <th class="th-them">Manual Review</th>
+          <th class="th-them">Basic ATS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Resume screening speed</td>
+          <td class="td-us"><span class="c-yes"><i class="fas fa-check"></i></span> Seconds</td>
+          <td><span class="c-no">Days / Weeks</span></td>
+          <td><span class="c-partial">Hours</span></td>
+        </tr>
+        <tr>
+          <td>Bias-free evaluation</td>
+          <td class="td-us"><span class="c-yes"><i class="fas fa-check"></i></span></td>
+          <td><span class="c-no"><i class="fas fa-times"></i></span></td>
+          <td><span class="c-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td>Auto-rank candidates</td>
+          <td class="td-us"><span class="c-yes"><i class="fas fa-check"></i></span></td>
+          <td><span class="c-no"><i class="fas fa-times"></i></span></td>
+          <td><span class="c-no"><i class="fas fa-times"></i></span></td>
+        </tr>
+        <tr>
+          <td>Bulk PDF upload</td>
+          <td class="td-us"><span class="c-yes"><i class="fas fa-check"></i></span></td>
+          <td><span class="c-no"><i class="fas fa-times"></i></span></td>
+          <td><span class="c-partial">Limited</span></td>
+        </tr>
+        <tr>
+          <td>CSV export</td>
+          <td class="td-us"><span class="c-yes"><i class="fas fa-check"></i></span></td>
+          <td><span class="c-no"><i class="fas fa-times"></i></span></td>
+          <td><span class="c-yes"><i class="fas fa-check"></i></span></td>
+        </tr>
+        <tr>
+          <td>Google SSO login</td>
+          <td class="td-us"><span class="c-yes"><i class="fas fa-check"></i></span></td>
+          <td><span class="c-no">N/A</span></td>
+          <td><span class="c-partial">Varies</span></td>
+        </tr>
+        <tr>
+          <td>Zero setup required</td>
+          <td class="td-us"><span class="c-yes"><i class="fas fa-check"></i></span></td>
+          <td><span class="c-no"><i class="fas fa-times"></i></span></td>
+          <td><span class="c-no"><i class="fas fa-times"></i></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ══════════════════════════════════════════
+     TECH STACK
+══════════════════════════════════════════ -->
+<section>
+  <div class="section-chip">Technology</div>
+  <h2 class="section-heading">Built on<br><em>Proven Tech</em></h2>
+  <p class="section-body">RecruitAI combines battle-tested open-source libraries with Google's cloud infrastructure for reliability at scale.</p>
+
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-icon"><i class="fab fa-python"></i></div>
+      <div class="tech-name">Flask</div>
+      <div class="tech-role">Web Backend</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon"><i class="fas fa-fire"></i></div>
+      <div class="tech-name">Firebase</div>
+      <div class="tech-role">Auth + Database</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon"><i class="fas fa-brain"></i></div>
+      <div class="tech-name">scikit-learn</div>
+      <div class="tech-role">AI Matching</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon"><i class="fas fa-file-pdf"></i></div>
+      <div class="tech-name">PyPDF2</div>
+      <div class="tech-role">PDF Parsing</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon"><i class="fas fa-cloud"></i></div>
+      <div class="tech-name">Firestore</div>
+      <div class="tech-role">Cloud Storage</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon"><i class="fas fa-lock"></i></div>
+      <div class="tech-name">Google SSO</div>
+      <div class="tech-role">Secure Login</div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ══════════════════════════════════════════
+     NEW — TESTIMONIALS
+══════════════════════════════════════════ -->
+<div class="trust-section">
+  <div class="trust-inner">
+    <div class="section-chip">Trusted By Recruiters</div>
+    <h2 class="section-heading">Real Teams.<br><em>Real Results.</em></h2>
+
+    <div class="trust-grid">
+      <div class="trust-card">
+        <i class="fas fa-quote-left trust-quote-icon"></i>
+        <p class="trust-text">We screened 200 applications for a single backend role in under 3 minutes. What used to take my team two days is now a coffee break.</p>
+        <div class="trust-author">
+          <div class="trust-avatar"><i class="fas fa-user"></i></div>
+          <div>
+            <div class="trust-name">Priya Nair</div>
+            <div class="trust-role">HR Lead · TechCorp India</div>
+          </div>
+        </div>
+      </div>
+      <div class="trust-card">
+        <i class="fas fa-quote-left trust-quote-icon"></i>
+        <p class="trust-text">The scoring feels fair and transparent. I can see exactly why a candidate ranked where they did, and the CSV export saves hours of reporting work.</p>
+        <div class="trust-author">
+          <div class="trust-avatar"><i class="fas fa-user"></i></div>
+          <div>
+            <div class="trust-name">Arjun Mehta</div>
+            <div class="trust-role">Campus Recruiter · Startup Hub</div>
+          </div>
+        </div>
+      </div>
+      <div class="trust-card">
+        <i class="fas fa-quote-left trust-quote-icon"></i>
+        <p class="trust-text">As a placement coordinator, I now handle 5× more companies simultaneously. RecruitAI turned our placement process from chaos into a clean, trackable pipeline.</p>
+        <div class="trust-author">
+          <div class="trust-avatar"><i class="fas fa-user"></i></div>
+          <div>
+            <div class="trust-name">Dr. Suresh Rao</div>
+            <div class="trust-role">Placement Officer · Engineering College</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     NEW — FAQ
+══════════════════════════════════════════ -->
+<section>
+  <div class="section-chip">FAQ</div>
+  <h2 class="section-heading">Questions We<br><em>Always Get</em></h2>
+  <p class="section-body">Everything you need to know before you start screening smarter.</p>
+
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-q-text">How does the AI score resumes?</span>
+        <div class="faq-icon"><i class="fas fa-plus"></i></div>
+      </button>
+      <div class="faq-answer">
+        <div class="faq-answer-inner">
+          RecruitAI uses TF-IDF (Term Frequency–Inverse Document Frequency) combined with cosine similarity to measure how closely a resume's language and keywords align with a given job description. Each resume receives a score from 0 to 100 — higher means stronger match. No personal data like name or gender influences the score.
+        </div>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Can I upload multiple resumes at once?</span>
+        <div class="faq-icon"><i class="fas fa-plus"></i></div>
+      </button>
+      <div class="faq-answer">
+        <div class="faq-answer-inner">
+          Yes. RecruitAI supports bulk PDF uploads with no hard limit on the number of resumes per session. All resumes are processed simultaneously and results appear ranked on your dashboard within seconds.
+        </div>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Is my data private and secure?</span>
+        <div class="faq-icon"><i class="fas fa-plus"></i></div>
+      </button>
+      <div class="faq-answer">
+        <div class="faq-answer-inner">
+          All data is stored in Google Firestore under your authenticated user account. No other user can access your job roles or candidate data. Authentication is handled by Firebase Auth with optional Google SSO for maximum security.
+        </div>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Can I override the AI's decision?</span>
+        <div class="faq-icon"><i class="fas fa-plus"></i></div>
+      </button>
+      <div class="faq-answer">
+        <div class="faq-answer-inner">
+          Absolutely. The AI-assigned status (Shortlisted / On Hold / Rejected) is a starting point, not a final verdict. You can manually update any candidate's status at any time from the candidates dashboard, and the change is saved instantly to Firestore.
+        </div>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-q-text">What file formats are supported?</span>
+        <div class="faq-icon"><i class="fas fa-plus"></i></div>
+      </button>
+      <div class="faq-answer">
+        <div class="faq-answer-inner">
+          Currently RecruitAI supports PDF files for both job descriptions and candidate resumes. PDF is the industry standard for resumes and allows reliable text extraction regardless of the original software used to create the file.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     CTA
+══════════════════════════════════════════ -->
+<div class="cta-section">
+  <div class="cta-inner">
+    <div class="section-chip" style="justify-content:center;">Get Started</div>
+    <h2 class="cta-title">Stop Reading Resumes.<br>Start <em style="color:var(--red);font-style:normal;">Hiring Talent.</em></h2>
+    <p class="cta-sub">Create your free account and screen your first batch of candidates in minutes.</p>
+    <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="cta-btn">
+      Get Started Free
+    </button>
+  </div>
 </div>
 
 
-<!-- FIREBASE GOOGLE AUTH -->
-
+<!-- ══════════════════════════════════════════
+     FIREBASE GOOGLE AUTH (unchanged)
+══════════════════════════════════════════ -->
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup }
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
 
 const firebaseConfig = {
   apiKey: "AIzaSyCuSMCyMKGDaB1ks5NC1WBfpLXSllOr3AA",
@@ -64,31 +1606,30 @@ const firebaseConfig = {
   appId: "1:545441119799:web:44565dcb7704cb7efe09b2"
 };
 
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-
 window.googleLogin = async function(){
-
-    const result = await signInWithPopup(auth, provider);
-
-    const user = result.user;
-
-    const token = await user.getIdToken();
-
-    await fetch("/google-login",{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body: JSON.stringify({token:token})
-    });
-
-    window.location.href="/dashboard";
+  const result = await signInWithPopup(auth, provider);
+  const token = await result.user.getIdToken();
+  await fetch("/google-login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token })
+  });
+  window.location.href = "/dashboard";
 }
+</script>
 
+<!-- FAQ accordion logic -->
+<script>
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
 </script>
 
 {% endblock %}
