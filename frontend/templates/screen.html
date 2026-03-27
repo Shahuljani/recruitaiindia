@@ -1,11 +1,520 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="text-3xl font-bold mb-6">AI Resume Screening</h2>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
 
-<form action="/process" method="POST" enctype="multipart/form-data">
-    <input type="file" name="resumes" multiple accept=".pdf" class="mb-4">
-    <button class="bg-blue-600 text-white px-6 py-2 rounded">Process</button>
-</form>
+  :root {
+    --red: #e01b24;
+    --red-glow: rgba(224, 27, 36, 0.35);
+    --black: #000000;
+    --black-soft: #0a0a0a;
+    --grey: #1a1a1a;
+    --grey-mid: #2a2a2a;
+    --white: #f0f0f0;
+    --white-dim: rgba(240,240,240,0.65);
+    --green: #4ade80;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .page-wrap {
+    min-height: 100vh;
+    padding: 40px 30px 80px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  /* ─── HEADER ─── */
+  .page-header {
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--grey-mid);
+  }
+
+  .page-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .page-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 28px; height: 2px;
+    background: var(--red);
+  }
+
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+  }
+
+  .page-title span { color: var(--red); }
+
+  .page-sub {
+    font-size: 16px;
+    color: var(--white-dim);
+    margin-top: 12px;
+    line-height: 1.6;
+    max-width: 560px;
+  }
+
+  /* ─── UPLOAD ZONE ─── */
+  .screen-form {
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    border-top: 2px solid var(--red);
+    padding: 40px 36px;
+    position: relative;
+  }
+
+  .screen-form::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--red), transparent 70%);
+  }
+
+  .form-section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .form-section-label::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 2px;
+    background: var(--red);
+  }
+
+  /* ─── DROP ZONE ─── */
+  .drop-zone {
+    border: 1px dashed rgba(224,27,36,0.4);
+    background: rgba(224,27,36,0.03);
+    padding: 56px 32px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.3s, background 0.3s;
+    margin-bottom: 28px;
+  }
+
+  .drop-zone:hover,
+  .drop-zone.dragover {
+    border-color: var(--red);
+    background: rgba(224,27,36,0.07);
+  }
+
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+
+  .drop-icon {
+    font-size: 38px;
+    color: rgba(224,27,36,0.35);
+    margin-bottom: 16px;
+    transition: color 0.3s;
+  }
+
+  .drop-zone:hover .drop-icon { color: var(--red); }
+
+  .drop-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 1.5px;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+
+  .drop-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.3);
+    text-transform: uppercase;
+  }
+
+  /* ─── FILE LIST ─── */
+  .file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 28px;
+    display: none;
+  }
+
+  .file-list.visible { display: flex; }
+
+  .file-list-header {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    padding: 10px 16px;
+    background: var(--grey);
+    border: 1px solid var(--grey-mid);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--grey-mid);
+    transition: background 0.2s;
+  }
+
+  .file-item:hover { background: rgba(224,27,36,0.04); }
+
+  .file-item-icon {
+    width: 30px; height: 30px;
+    background: rgba(224,27,36,0.1);
+    border: 1px solid rgba(224,27,36,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+    flex-shrink: 0;
+  }
+
+  .file-item-name {
+    flex: 1;
+    font-size: 14px;
+    color: var(--white);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .file-item-size {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--white-dim);
+    flex-shrink: 0;
+  }
+
+  .file-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.25);
+    color: var(--green);
+    flex-shrink: 0;
+  }
+
+  /* ─── PROCESS BUTTON ─── */
+  .btn-process {
+    width: 100%;
+    padding: 16px;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    border: none;
+    cursor: pointer;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+    transition: background 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-process:hover {
+    background: #c5171f;
+    box-shadow: 0 0 40px var(--red-glow);
+  }
+
+  .btn-process:disabled {
+    background: var(--grey-mid);
+    color: rgba(240,240,240,0.2);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* ─── INFO CARDS ─── */
+  .info-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 32px;
+    border: 1px solid var(--grey-mid);
+  }
+
+  @media (max-width: 600px) {
+    .info-strip { grid-template-columns: 1fr; }
+  }
+
+  .info-card {
+    background: var(--black-soft);
+    padding: 22px 20px;
+    border-right: 1px solid var(--grey-mid);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .info-card:last-child { border-right: none; }
+
+  .info-icon {
+    width: 34px; height: 34px;
+    background: rgba(224,27,36,0.1);
+    border: 1px solid rgba(224,27,36,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    flex-shrink: 0;
+  }
+
+  .info-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.4px;
+    margin-bottom: 3px;
+    color: var(--white);
+  }
+
+  .info-desc {
+    font-size: 12px;
+    color: var(--white-dim);
+    line-height: 1.5;
+  }
+
+  /* ─── TERMINAL HINT ─── */
+  .terminal-hint {
+    background: #000;
+    border: 1px solid var(--grey-mid);
+    border-left: 2px solid var(--red);
+    padding: 20px 24px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    line-height: 2;
+    color: #ccc;
+    margin-top: 32px;
+  }
+
+  .t-red   { color: var(--red); }
+  .t-green { color: var(--green); }
+  .t-dim   { color: rgba(204,204,204,0.3); }
+
+  /* ─── FOOTER ─── */
+  .page-footer-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 14px 20px;
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.2);
+    text-transform: uppercase;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s infinite;
+    margin-right: 8px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  @media (max-width: 600px) {
+    .page-wrap  { padding: 24px 16px 60px; }
+    .screen-form { padding: 28px 20px; }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-eyebrow">AI Engine</div>
+    <h1 class="page-title">Resume <span>Screening</span></h1>
+    <p class="page-sub">Upload candidate PDFs and let the TF-IDF engine score and rank each one against your active job roles — automatically.</p>
+  </div>
+
+  <!-- Screening Form -->
+  <div class="screen-form">
+    <div class="form-section-label">Upload Resumes</div>
+
+    <form action="/process" method="POST" enctype="multipart/form-data" id="screenForm">
+
+      <!-- Drop Zone -->
+      <div class="drop-zone" id="dropZone">
+        <input type="file" name="resumes" multiple accept=".pdf"
+               id="resumeInput" onchange="handleFiles(this)">
+        <div class="drop-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+        <div class="drop-title">Drop Resumes Here</div>
+        <div class="drop-sub">or click to browse &nbsp;·&nbsp; PDF only &nbsp;·&nbsp; Unlimited files</div>
+      </div>
+
+      <!-- File List -->
+      <div class="file-list" id="fileList">
+        <div class="file-list-header">
+          <i class="fas fa-list"></i>
+          <span id="fileListTitle">0 files selected</span>
+        </div>
+        <div id="fileItems"></div>
+      </div>
+
+      <!-- Process Button -->
+      <button type="submit" class="btn-process" id="processBtn" disabled>
+        <i class="fas fa-robot"></i> Run AI Screening
+      </button>
+
+    </form>
+  </div>
+
+  <!-- Info Strip -->
+  <div class="info-strip">
+    <div class="info-card">
+      <div class="info-icon"><i class="fas fa-bolt"></i></div>
+      <div>
+        <div class="info-title">Instant Scoring</div>
+        <div class="info-desc">Every resume is scored against all your job roles in milliseconds using TF-IDF cosine similarity.</div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon"><i class="fas fa-crosshairs"></i></div>
+      <div>
+        <div class="info-title">Auto Role Match</div>
+        <div class="info-desc">Each candidate is automatically assigned to the best-fit job role from your active listings.</div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon"><i class="fas fa-check-double"></i></div>
+      <div>
+        <div class="info-title">Auto-Labelled</div>
+        <div class="info-desc">Candidates are labelled Shortlisted, On Hold, or Rejected based on their AI score automatically.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal Hint -->
+  <div class="terminal-hint">
+    <span class="t-red">$</span> awaiting resume upload...<br>
+    <span class="t-dim">────────────────────────────────</span><br>
+    <span class="t-red">→</span> score ≥ 75  <span class="t-green">Shortlisted</span><br>
+    <span class="t-red">→</span> score 50–74 <span style="color:#fbbf24;">On Hold</span><br>
+    <span class="t-red">→</span> score &lt; 50  <span style="color:#f87171;">Rejected</span><br>
+    <span class="t-dim">────────────────────────────────</span><br>
+    <span class="t-red">$</span> ready<span class="t-green"> _</span>
+  </div>
+
+  <!-- Footer Strip -->
+  <div class="page-footer-strip">
+    <div><span class="footer-dot"></span> AI Engine ready</div>
+    <div>TF-IDF Cosine · RecruitAI Screener</div>
+  </div>
+
+</div>
+
+<script>
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function handleFiles(input) {
+    const files = Array.from(input.files);
+    const fileList  = document.getElementById('fileList');
+    const fileItems = document.getElementById('fileItems');
+    const fileTitle = document.getElementById('fileListTitle');
+    const btn       = document.getElementById('processBtn');
+
+    if (files.length === 0) {
+      fileList.classList.remove('visible');
+      btn.disabled = true;
+      return;
+    }
+
+    fileTitle.textContent = `${files.length} file${files.length > 1 ? 's' : ''} selected`;
+    fileItems.innerHTML = files.map(f => `
+      <div class="file-item">
+        <div class="file-item-icon"><i class="fas fa-file-pdf"></i></div>
+        <div class="file-item-name">${f.name}</div>
+        <div class="file-item-size">${formatSize(f.size)}</div>
+        <div class="file-badge">Ready</div>
+      </div>
+    `).join('');
+
+    fileList.classList.add('visible');
+    btn.disabled = false;
+  }
+
+  // Drag & drop visual feedback
+  const dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop',      () => dropZone.classList.remove('dragover'));
+
+  // Show spinner on submit
+  document.getElementById('screenForm').addEventListener('submit', function() {
+    const btn = document.getElementById('processBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    btn.disabled = true;
+  });
+</script>
 
 {% endblock %}

@@ -1,102 +1,504 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="text-3xl font-bold text-slate-800 mb-8">Candidate Ranking</h2>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
 
-{% if grouped %}
+  :root {
+    --red: #e01b24;
+    --red-glow: rgba(224, 27, 36, 0.35);
+    --black: #000000;
+    --black-soft: #0a0a0a;
+    --grey: #1a1a1a;
+    --grey-mid: #2a2a2a;
+    --white: #f0f0f0;
+    --white-dim: rgba(240,240,240,0.65);
+    --green: #4ade80;
+    --yellow: #fbbf24;
+  }
 
-{% for role, candidates in grouped.items() %}
-<div class="bg-white rounded-xl shadow mb-8 border">
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    <!-- Role Header -->
-    <div class="bg-gray-100 px-6 py-4 flex justify-between items-center border-b">
-        <h3 class="text-xl font-bold text-gray-800">
-            {{ role }}
-        </h3>
-        <span class="text-sm text-gray-500">
-            {{ candidates|length }} Candidates
-        </span>
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .page-wrap {
+    min-height: 100vh;
+    padding: 40px 30px 80px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ─── HEADER ─── */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--grey-mid);
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .page-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .page-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 28px; height: 2px;
+    background: var(--red);
+  }
+
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+  }
+
+  .page-title span { color: var(--red); }
+
+  .role-total-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--white-dim);
+    text-transform: uppercase;
+    background: var(--grey);
+    border: 1px solid var(--grey-mid);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-end;
+  }
+
+  .role-total-badge span {
+    color: var(--red);
+    font-size: 16px;
+    font-family: 'Bebas Neue', sans-serif;
+  }
+
+  /* ─── ROLE BLOCK ─── */
+  .role-block {
+    margin-bottom: 40px;
+  }
+
+  .role-block:last-child { margin-bottom: 0; }
+
+  /* role header bar */
+  .role-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    background: var(--grey);
+    border: 1px solid var(--grey-mid);
+    border-bottom: none;
+    border-left: 3px solid var(--red);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .role-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .role-icon {
+    width: 36px; height: 36px;
+    background: rgba(224,27,36,0.12);
+    border: 1px solid rgba(224,27,36,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    flex-shrink: 0;
+  }
+
+  .role-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 1.5px;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .role-cand-count {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    background: rgba(224,27,36,0.08);
+    border: 1px solid rgba(224,27,36,0.2);
+    padding: 5px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .role-cand-count strong {
+    color: var(--red);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+  }
+
+  /* ─── TABLE ─── */
+  .table-wrap {
+    border: 1px solid var(--grey-mid);
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .rank-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 620px;
+    font-size: 14px;
+  }
+
+  .rank-table thead tr {
+    background: var(--black-soft);
+    border-bottom: 1px solid var(--grey-mid);
+  }
+
+  .rank-table th {
+    padding: 13px 18px;
+    text-align: left;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: var(--red);
+    text-transform: uppercase;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .rank-table tbody tr {
+    border-bottom: 1px solid var(--grey-mid);
+    transition: background 0.2s;
+  }
+
+  .rank-table tbody tr:last-child { border-bottom: none; }
+  .rank-table tbody tr:hover { background: rgba(224,27,36,0.04); }
+
+  .rank-table td {
+    padding: 14px 18px;
+    color: var(--white-dim);
+    vertical-align: middle;
+  }
+
+  /* ─── RANK CELL ─── */
+  .rank-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rank-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    line-height: 1;
+    color: rgba(224,27,36,0.4);
+    min-width: 28px;
+  }
+
+  /* gold/silver/bronze for top 3 */
+  tr:nth-child(1) .rank-num { color: #fbbf24; }
+  tr:nth-child(2) .rank-num { color: #94a3b8; }
+  tr:nth-child(3) .rank-num { color: #c2814a; }
+
+  .rank-medal {
+    font-size: 13px;
+  }
+
+  /* ─── NAME CELL ─── */
+  .td-name {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .td-avatar {
+    width: 32px; height: 32px;
+    background: rgba(224,27,36,0.12);
+    border: 1px solid rgba(224,27,36,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    color: var(--red);
+    flex-shrink: 0;
+    clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+  }
+
+  /* top 3 avatars */
+  .rank-table tbody tr:nth-child(1) .td-avatar { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.3); color: #fbbf24; }
+  .rank-table tbody tr:nth-child(2) .td-avatar { background: rgba(148,163,184,0.12); border-color: rgba(148,163,184,0.3); color: #94a3b8; }
+  .rank-table tbody tr:nth-child(3) .td-avatar { background: rgba(194,129,74,0.12);  border-color: rgba(194,129,74,0.3);  color: #c2814a; }
+
+  .td-name-text {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--white);
+    letter-spacing: 0.3px;
+  }
+
+  /* ─── EMAIL ─── */
+  .td-email {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── SCORE ─── */
+  .score-cell {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .score-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    line-height: 1;
+    min-width: 34px;
+  }
+
+  .score-num.high   { color: var(--green); }
+  .score-num.medium { color: var(--yellow); }
+  .score-num.low    { color: #f87171; }
+
+  .mini-bar {
+    width: 60px; height: 3px;
+    background: var(--grey-mid);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .mini-fill {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+  }
+
+  /* ─── STATUS BADGE ─── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    white-space: nowrap;
+  }
+
+  .badge-green  { background: rgba(74,222,128,0.1);  border: 1px solid rgba(74,222,128,0.3); color: var(--green); }
+  .badge-yellow { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.3); color: var(--yellow); }
+  .badge-red    { background: rgba(224,27,36,0.1);   border: 1px solid rgba(224,27,36,0.35); color: #f87171; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    text-align: center;
+    padding: 90px 20px;
+    border: 1px dashed var(--grey-mid);
+  }
+
+  .empty-icon {
+    font-size: 40px;
+    color: rgba(224,27,36,0.15);
+    margin-bottom: 16px;
+  }
+
+  .empty-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(240,240,240,0.15);
+    text-transform: uppercase;
+  }
+
+  /* ─── FOOTER STRIP ─── */
+  .page-footer-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding: 14px 20px;
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.2);
+    text-transform: uppercase;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s infinite;
+    margin-right: 8px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  @media (max-width: 600px) {
+    .page-wrap { padding: 24px 16px 60px; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">AI Rankings</div>
+      <h1 class="page-title">Candidate <span>Ranking</span></h1>
     </div>
+    {% if grouped %}
+    <div class="role-total-badge">
+      <span>{{ grouped | length }}</span> roles ranked
+    </div>
+    {% endif %}
+  </div>
 
-    <!-- Ranking Table -->
-    <div class="overflow-x-auto">
-        <table class="w-full text-left">
-            <thead class="bg-gray-50 text-gray-600 text-sm">
-                <tr>
-                    <th class="p-4">Rank</th>
-                    <th class="p-4">Name</th>
-                    <th class="p-4">Email</th>
-                    <th class="p-4">Score</th>
-                    <th class="p-4">Status</th>
-                </tr>
-            </thead>
+  {% if grouped %}
 
-            <tbody>
+    {% for role, candidates in grouped.items() %}
+    <div class="role-block">
 
+      <!-- Role Header -->
+      <div class="role-header">
+        <div class="role-header-left">
+          <div class="role-icon"><i class="fas fa-briefcase"></i></div>
+          <div class="role-name">{{ role }}</div>
+        </div>
+        <div class="role-cand-count">
+          <strong>{{ candidates | length }}</strong> candidate{{ 's' if candidates | length != 1 else '' }}
+        </div>
+      </div>
+
+      <!-- Ranking Table -->
+      <div class="table-wrap">
+        <table class="rank-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Candidate</th>
+              <th>Email</th>
+              <th>AI Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
             {% for c in candidates %}
-            <tr class="border-t hover:bg-gray-50">
+            <tr>
 
-                <!-- Rank -->
-                <td class="p-4 font-bold text-gray-700">
-                    #{{ loop.index }}
-                </td>
+              <!-- Rank -->
+              <td>
+                <div class="rank-cell">
+                  <div class="rank-num">#{{ loop.index }}</div>
+                  {% if loop.index == 1 %}
+                    <span class="rank-medal">🥇</span>
+                  {% elif loop.index == 2 %}
+                    <span class="rank-medal">🥈</span>
+                  {% elif loop.index == 3 %}
+                    <span class="rank-medal">🥉</span>
+                  {% endif %}
+                </div>
+              </td>
 
-                <!-- Name -->
-                <td class="p-4 font-medium text-slate-700">
-                    {{ c.name }}
-                </td>
+              <!-- Name -->
+              <td>
+                <div class="td-name">
+                  <div class="td-avatar">{{ c.name[0] | upper if c.name else '?' }}</div>
+                  <div class="td-name-text">{{ c.name }}</div>
+                </div>
+              </td>
 
-                <!-- Email -->
-                <td class="p-4 text-gray-500">
-                    {{ c.email }}
-                </td>
+              <!-- Email -->
+              <td><span class="td-email">{{ c.email }}</span></td>
 
-                <!-- Score -->
-                <td class="p-4">
-                    <span class="px-3 py-1 rounded text-xs font-bold
-                    {% if c.score >= 75 %}
-                        bg-green-100 text-green-700
-                    {% elif c.score >= 50 %}
-                        bg-yellow-100 text-yellow-700
-                    {% else %}
-                        bg-red-100 text-red-700
-                    {% endif %}
-                    ">
-                        {{ c.score }}%
-                    </span>
-                </td>
+              <!-- Score -->
+              <td>
+                <div class="score-cell">
+                  <span class="score-num {% if c.score >= 75 %}high{% elif c.score >= 50 %}medium{% else %}low{% endif %}">
+                    {{ c.score }}
+                  </span>
+                  <div class="mini-bar">
+                    <div class="mini-fill" style="width:{{ c.score }}%; background:{% if c.score >= 75 %}#4ade80{% elif c.score >= 50 %}#fbbf24{% else %}#e01b24{% endif %};"></div>
+                  </div>
+                  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--white-dim);">%</span>
+                </div>
+              </td>
 
-                <!-- Status -->
-                <td class="p-4">
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold
-                    {% if c.status == 'Shortlisted' %}
-                        bg-green-100 text-green-700
-                    {% elif c.status == 'On Hold' %}
-                        bg-yellow-100 text-yellow-700
-                    {% else %}
-                        bg-red-100 text-red-700
-                    {% endif %}
-                    ">
-                        {{ c.status }}
-                    </span>
-                </td>
+              <!-- Status -->
+              <td>
+                {% if c.status == 'Shortlisted' %}
+                  <span class="badge badge-green"><i class="fas fa-check-circle"></i> Shortlisted</span>
+                {% elif c.status == 'On Hold' %}
+                  <span class="badge badge-yellow"><i class="fas fa-pause-circle"></i> On Hold</span>
+                {% else %}
+                  <span class="badge badge-red"><i class="fas fa-times-circle"></i> Rejected</span>
+                {% endif %}
+              </td>
 
             </tr>
             {% endfor %}
-
-            </tbody>
+          </tbody>
         </table>
+      </div>
+
+    </div>
+    {% endfor %}
+
+  {% else %}
+
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fas fa-trophy"></i></div>
+      <div class="empty-text">No candidate rankings available yet</div>
     </div>
 
+  {% endif %}
+
+  <!-- Footer Strip -->
+  <div class="page-footer-strip">
+    <div><span class="footer-dot"></span> Rankings live</div>
+    <div>RecruitAI · Score-Based Ranking</div>
+  </div>
+
 </div>
-{% endfor %}
-
-{% else %}
-
-<div class="bg-white p-10 rounded shadow text-center text-gray-400">
-    No candidate rankings available yet.
-</div>
-
-{% endif %}
 
 {% endblock %}

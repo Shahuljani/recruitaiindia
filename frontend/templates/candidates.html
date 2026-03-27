@@ -1,47 +1,458 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="text-3xl font-bold mb-6">Candidates</h2>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
 
-<a href="/export" class="bg-green-600 text-white px-4 py-2 rounded">Export CSV</a>
+  :root {
+    --red: #e01b24;
+    --red-glow: rgba(224, 27, 36, 0.35);
+    --black: #000000;
+    --black-soft: #0a0a0a;
+    --grey: #1a1a1a;
+    --grey-mid: #2a2a2a;
+    --white: #f0f0f0;
+    --white-dim: rgba(240,240,240,0.65);
+    --green: #4ade80;
+    --yellow: #fbbf24;
+  }
 
-<table class="w-full bg-white shadow rounded mt-4">
-    <thead class="bg-gray-200">
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .page-wrap {
+    min-height: 100vh;
+    padding: 40px 30px 80px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ─── HEADER ─── */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--grey-mid);
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .page-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .page-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 28px; height: 2px;
+    background: var(--red);
+  }
+
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+  }
+
+  .page-title span { color: var(--red); }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1px solid rgba(74,222,128,0.4);
+    color: var(--green);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    padding: 10px 24px;
+    text-decoration: none;
+    cursor: pointer;
+    clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+
+  .btn-export:hover {
+    background: rgba(74,222,128,0.08);
+    box-shadow: 0 0 24px rgba(74,222,128,0.15);
+  }
+
+  .cand-count {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--white-dim);
+    text-transform: uppercase;
+    background: var(--grey);
+    border: 1px solid var(--grey-mid);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cand-count span { color: var(--red); font-size: 16px; font-family: 'Bebas Neue', sans-serif; }
+
+  /* ─── TABLE WRAP ─── */
+  .table-wrap {
+    border: 1px solid var(--grey-mid);
+    border-top: 2px solid var(--red);
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .table-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--red), transparent 70%);
+  }
+
+  .cand-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 780px;
+    font-size: 14px;
+  }
+
+  /* head */
+  .cand-table thead tr {
+    background: var(--grey);
+    border-bottom: 1px solid var(--grey-mid);
+  }
+
+  .cand-table th {
+    padding: 14px 18px;
+    text-align: left;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: var(--red);
+    text-transform: uppercase;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  /* rows */
+  .cand-table tbody tr {
+    border-bottom: 1px solid var(--grey-mid);
+    transition: background 0.2s;
+  }
+
+  .cand-table tbody tr:last-child { border-bottom: none; }
+  .cand-table tbody tr:hover { background: rgba(224,27,36,0.04); }
+
+  .cand-table td {
+    padding: 14px 18px;
+    color: var(--white-dim);
+    vertical-align: middle;
+  }
+
+  /* name cell */
+  .td-name {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .td-avatar {
+    width: 32px; height: 32px;
+    background: rgba(224,27,36,0.12);
+    border: 1px solid rgba(224,27,36,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    color: var(--red);
+    flex-shrink: 0;
+    clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+  }
+
+  .td-name-text {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--white);
+    letter-spacing: 0.3px;
+  }
+
+  /* email */
+  .td-email {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: var(--white-dim);
+  }
+
+  /* role pill */
+  .role-pill {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--grey-mid);
+    color: var(--white-dim);
+    white-space: nowrap;
+  }
+
+  /* score */
+  .score-cell {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .score-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    line-height: 1;
+    min-width: 34px;
+  }
+
+  .score-num.high   { color: var(--green); }
+  .score-num.medium { color: var(--yellow); }
+  .score-num.low    { color: #f87171; }
+
+  .mini-bar {
+    width: 60px; height: 3px;
+    background: var(--grey-mid);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .mini-fill {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+  }
+
+  /* status select */
+  .status-select {
+    background: var(--grey);
+    border: 1px solid var(--grey-mid);
+    color: var(--white);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23e01b24'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+    transition: border-color 0.2s;
+  }
+
+  .status-select:focus { border-color: var(--red); }
+
+  .status-select.sel-shortlisted { border-color: rgba(74,222,128,0.4); color: var(--green); }
+  .status-select.sel-onhold      { border-color: rgba(251,191,36,0.4); color: var(--yellow); }
+  .status-select.sel-rejected    { border-color: rgba(224,27,36,0.4);  color: #f87171; }
+
+  /* delete btn */
+  .btn-delete {
+    background: none;
+    border: 1px solid rgba(224,27,36,0.25);
+    color: rgba(224,27,36,0.6);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-delete:hover {
+    background: rgba(224,27,36,0.1);
+    color: #f87171;
+    border-color: rgba(224,27,36,0.5);
+  }
+
+  /* empty */
+  .empty-row td {
+    text-align: center;
+    padding: 70px 20px;
+    color: rgba(240,240,240,0.15);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* ─── FOOTER STRIP ─── */
+  .page-footer-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 14px 20px;
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.2);
+    text-transform: uppercase;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s infinite;
+    margin-right: 8px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  @media (max-width: 600px) {
+    .page-wrap { padding: 24px 16px 60px; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Pipeline</div>
+      <h1 class="page-title">Candi<span>dates</span></h1>
+    </div>
+    <div class="header-actions">
+      <div class="cand-count"><span>{{ cands | length }}</span> total</div>
+      <a href="/export" class="btn-export">
+        <i class="fas fa-file-csv"></i> Export CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table class="cand-table">
+      <thead>
         <tr>
-            <th class="p-3">Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Score</th>
-            <th>Status</th>
-            <th>Delete</th>
+          <th>Candidate</th>
+          <th>Email</th>
+          <th>Matched Role</th>
+          <th>AI Score</th>
+          <th>Status</th>
+          <th>Action</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for c in cands %}
-        <tr class="border-t">
-            <td class="p-3">{{ c.name }}</td>
-            <td>{{ c.email }}</td>
-            <td>{{ c.matched_role }}</td>
-            <td>{{ c.score }}%</td>
-            <td>
-                <form action="/status" method="POST">
-                    <input type="hidden" name="id" value="{{ c.id }}">
-                    <select name="status" onchange="this.form.submit()">
-                        <option {% if c.status=='Shortlisted' %}selected{% endif %}>Shortlisted</option>
-                        <option {% if c.status=='On Hold' %}selected{% endif %}>On Hold</option>
-                        <option {% if c.status=='Rejected' %}selected{% endif %}>Rejected</option>
-                    </select>
-                </form>
-            </td>
-            <td>
-                <form action="/del_cand" method="POST">
-                    <input type="hidden" name="id" value="{{ c.id }}">
-                    <button class="text-red-500">Delete</button>
-                </form>
-            </td>
+        <tr>
+
+          <!-- Name -->
+          <td>
+            <div class="td-name">
+              <div class="td-avatar">{{ c.name[0] | upper if c.name else '?' }}</div>
+              <div class="td-name-text">{{ c.name }}</div>
+            </div>
+          </td>
+
+          <!-- Email -->
+          <td><span class="td-email">{{ c.email }}</span></td>
+
+          <!-- Role -->
+          <td><span class="role-pill">{{ c.matched_role }}</span></td>
+
+          <!-- Score -->
+          <td>
+            <div class="score-cell">
+              <span class="score-num {% if c.score >= 75 %}high{% elif c.score >= 50 %}medium{% else %}low{% endif %}">
+                {{ c.score }}
+              </span>
+              <div class="mini-bar">
+                <div class="mini-fill" style="width:{{ c.score }}%; background:{% if c.score >= 75 %}#4ade80{% elif c.score >= 50 %}#fbbf24{% else %}#e01b24{% endif %};"></div>
+              </div>
+              <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--white-dim);">%</span>
+            </div>
+          </td>
+
+          <!-- Status -->
+          <td>
+            <form action="/status" method="POST">
+              <input type="hidden" name="id" value="{{ c.id }}">
+              <select name="status" onchange="this.form.submit()"
+                class="status-select {% if c.status == 'Shortlisted' %}sel-shortlisted{% elif c.status == 'On Hold' %}sel-onhold{% else %}sel-rejected{% endif %}">
+                <option {% if c.status == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
+                <option {% if c.status == 'On Hold' %}selected{% endif %}>On Hold</option>
+                <option {% if c.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+              </select>
+            </form>
+          </td>
+
+          <!-- Delete -->
+          <td>
+            <form action="/del_cand" method="POST">
+              <input type="hidden" name="id" value="{{ c.id }}">
+              <button type="submit" class="btn-delete">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </form>
+          </td>
+
+        </tr>
+        {% else %}
+        <tr class="empty-row">
+          <td colspan="6">— No candidates found —</td>
         </tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer Strip -->
+  <div class="page-footer-strip">
+    <div><span class="footer-dot"></span> Pipeline live</div>
+    <div>RecruitAI · Candidate Manager</div>
+  </div>
+
+</div>
 
 {% endblock %}

@@ -1,25 +1,475 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="text-3xl font-bold mb-6">Job Roles</h2>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
 
-<form action="/add_job" method="POST" enctype="multipart/form-data" class="mb-6">
-    <input type="file" name="files" multiple accept=".pdf" class="mb-2">
-    <button class="bg-blue-600 text-white px-4 py-2 rounded">Upload Job PDF</button>
-</form>
+  :root {
+    --red: #e01b24;
+    --red-glow: rgba(224, 27, 36, 0.35);
+    --black: #000000;
+    --black-soft: #0a0a0a;
+    --grey: #1a1a1a;
+    --grey-mid: #2a2a2a;
+    --white: #f0f0f0;
+    --white-dim: rgba(240,240,240,0.65);
+    --green: #4ade80;
+  }
 
-<div class="grid grid-cols-3 gap-6">
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .page-wrap {
+    min-height: 100vh;
+    padding: 40px 30px 80px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ─── HEADER ─── */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--grey-mid);
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .page-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .page-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 28px; height: 2px;
+    background: var(--red);
+  }
+
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+  }
+
+  .page-title span { color: var(--red); }
+
+  .job-count-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--white-dim);
+    text-transform: uppercase;
+    background: var(--grey);
+    border: 1px solid var(--grey-mid);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-end;
+  }
+
+  .job-count-badge span { color: var(--red); font-size: 16px; font-family: 'Bebas Neue', sans-serif; }
+
+  /* ─── UPLOAD FORM ─── */
+  .upload-panel {
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    border-top: 2px solid var(--red);
+    padding: 28px 32px;
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .upload-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--red), transparent 70%);
+  }
+
+  .upload-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .upload-label::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 2px;
+    background: var(--red);
+  }
+
+  .upload-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .file-input-wrap {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+  }
+
+  .file-input-wrap input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+
+  .file-input-face {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--grey-mid);
+    border-bottom: 1px solid rgba(224,27,36,0.4);
+    color: rgba(240,240,240,0.35);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .file-input-wrap:hover .file-input-face {
+    background: rgba(224,27,36,0.05);
+    border-color: var(--red);
+    color: var(--white-dim);
+  }
+
+  .file-input-face i { color: var(--red); font-size: 14px; }
+
+  .btn-upload {
+    background: var(--red);
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px;
+    letter-spacing: 2.5px;
+    padding: 11px 32px;
+    border: none;
+    cursor: pointer;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    transition: background 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-upload:hover {
+    background: #c5171f;
+    box-shadow: 0 0 30px var(--red-glow);
+  }
+
+  .upload-hint {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: rgba(240,240,240,0.2);
+    text-transform: uppercase;
+    margin-top: 12px;
+  }
+
+  /* ─── JOBS GRID ─── */
+  .jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2px;
+  }
+
+  .job-card {
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    padding: 28px 26px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s, border-color 0.3s;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .job-card:hover {
+    background: #111;
+    border-color: rgba(224,27,36,0.3);
+  }
+
+  .job-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--red);
+    transition: width 0.4s ease;
+  }
+
+  .job-card:hover::after { width: 100%; }
+
+  .job-card-index {
+    position: absolute;
+    top: 10px; right: 14px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px;
+    color: rgba(224,27,36,0.07);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .job-card-icon {
+    width: 38px; height: 38px;
+    background: rgba(224,27,36,0.1);
+    border: 1px solid rgba(224,27,36,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+    flex-shrink: 0;
+  }
+
+  .job-card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.4px;
+    color: var(--white);
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  .job-card-desc {
+    font-size: 13px;
+    color: var(--white-dim);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .job-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid var(--grey-mid);
+    margin-top: auto;
+  }
+
+  .job-pdf-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .job-pdf-tag i { color: var(--red); }
+
+  .btn-delete {
+    background: none;
+    border: 1px solid rgba(224,27,36,0.3);
+    color: rgba(224,27,36,0.7);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+
+  .btn-delete:hover {
+    background: rgba(224,27,36,0.12);
+    color: #f87171;
+    border-color: rgba(224,27,36,0.6);
+  }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    border: 1px dashed var(--grey-mid);
+  }
+
+  .empty-icon {
+    font-size: 36px;
+    color: rgba(224,27,36,0.2);
+    margin-bottom: 16px;
+  }
+
+  .empty-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(240,240,240,0.2);
+    text-transform: uppercase;
+  }
+
+  /* ─── FOOTER STRIP ─── */
+  .page-footer-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 14px 20px;
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.2);
+    text-transform: uppercase;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s infinite;
+    margin-right: 8px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  @media (max-width: 600px) {
+    .page-wrap { padding: 24px 16px 60px; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .upload-row { flex-direction: column; align-items: stretch; }
+    .btn-upload { justify-content: center; }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Role Management</div>
+      <h1 class="page-title">Job <span>Roles</span></h1>
+    </div>
+    <div class="job-count-badge">
+      <span>{{ jobs | length }}</span> roles loaded
+    </div>
+  </div>
+
+  <!-- Upload Panel -->
+  <div class="upload-panel">
+    <div class="upload-label">Upload Job Description</div>
+    <form action="/add_job" method="POST" enctype="multipart/form-data">
+      <div class="upload-row">
+        <div class="file-input-wrap">
+          <input type="file" name="files" multiple accept=".pdf" id="fileInput"
+                 onchange="updateLabel(this)">
+          <div class="file-input-face" id="fileLabel">
+            <i class="fas fa-file-pdf"></i>
+            <span>Select PDF files — multiple allowed</span>
+          </div>
+        </div>
+        <button type="submit" class="btn-upload">
+          <i class="fas fa-upload"></i> Upload
+        </button>
+      </div>
+      <div class="upload-hint">Accepted format: PDF &nbsp;·&nbsp; No file size limit &nbsp;·&nbsp; Multiple files supported</div>
+    </form>
+  </div>
+
+  <!-- Jobs Grid -->
+  <div class="jobs-grid">
     {% for j in jobs %}
-    <div class="bg-white p-4 rounded shadow">
-        <h3 class="font-bold">{{ j.title }}</h3>
-        <p class="text-sm text-gray-600 line-clamp-3">{{ j.description }}</p>
-
-        <form action="/delete_job" method="POST" class="mt-2">
-            <input type="hidden" name="id" value="{{ j.id }}">
-            <button class="text-red-500">Delete</button>
+    <div class="job-card">
+      <div class="job-card-index">{{ loop.index }}</div>
+      <div class="job-card-icon"><i class="fas fa-briefcase"></i></div>
+      <div class="job-card-title">{{ j.title }}</div>
+      <div class="job-card-desc">{{ j.description }}</div>
+      <div class="job-card-footer">
+        <div class="job-pdf-tag"><i class="fas fa-file-pdf"></i> PDF</div>
+        <form action="/delete_job" method="POST">
+          <input type="hidden" name="id" value="{{ j.id }}">
+          <button type="submit" class="btn-delete">
+            <i class="fas fa-trash"></i> Delete
+          </button>
         </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fas fa-folder-open"></i></div>
+      <div class="empty-text">No job roles uploaded yet</div>
     </div>
     {% endfor %}
+  </div>
+
+  <!-- Footer Strip -->
+  <div class="page-footer-strip">
+    <div><span class="footer-dot"></span> System operational</div>
+    <div>RecruitAI · Job Role Manager</div>
+  </div>
+
 </div>
+
+<script>
+  function updateLabel(input) {
+    const label = document.getElementById('fileLabel');
+    const count = input.files.length;
+    if (count === 0) {
+      label.innerHTML = '<i class="fas fa-file-pdf"></i><span>Select PDF files — multiple allowed</span>';
+    } else if (count === 1) {
+      label.innerHTML = `<i class="fas fa-file-pdf"></i><span>${input.files[0].name}</span>`;
+    } else {
+      label.innerHTML = `<i class="fas fa-file-pdf"></i><span>${count} files selected</span>`;
+    }
+  }
+</script>
 
 {% endblock %}

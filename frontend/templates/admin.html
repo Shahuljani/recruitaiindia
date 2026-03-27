@@ -1,139 +1,659 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="text-3xl font-bold text-slate-800 mb-8">Admin Panel</h2>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  :root {
+    --red: #e01b24;
+    --red-glow: rgba(224, 27, 36, 0.35);
+    --black: #000000;
+    --black-soft: #0a0a0a;
+    --grey: #1a1a1a;
+    --grey-mid: #2a2a2a;
+    --white: #f0f0f0;
+    --white-dim: rgba(240,240,240,0.65);
+    --green: #4ade80;
+    --yellow: #fbbf24;
+  }
 
-    <!-- User Profile Card -->
-    <div class="bg-white rounded-xl shadow p-6 text-center border">
-        <div class="w-20 h-20 mx-auto rounded-full bg-blue-100 flex items-center justify-center text-3xl font-bold text-blue-600 mb-4">
-            {{ session.user.email[0]|upper }}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .page-wrap {
+    min-height: 100vh;
+    padding: 40px 30px 80px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ─── HEADER ─── */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--grey-mid);
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .page-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .page-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 28px; height: 2px;
+    background: var(--red);
+  }
+
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+  }
+
+  .page-title span { color: var(--red); }
+
+  .admin-chip {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    background: rgba(224,27,36,0.08);
+    border: 1px solid rgba(224,27,36,0.3);
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-end;
+    clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+  }
+
+  /* ─── TOP GRID ─── */
+  .top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+
+  @media (max-width: 900px) { .top-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .top-grid { grid-template-columns: 1fr; } }
+
+  /* ─── PANEL BASE ─── */
+  .panel {
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    padding: 28px 26px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+
+  .panel-label::before {
+    content: '';
+    display: inline-block;
+    width: 16px; height: 2px;
+    background: var(--red);
+  }
+
+  /* ─── PROFILE CARD ─── */
+  .profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border-top: 2px solid var(--red);
+  }
+
+  .profile-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--red), transparent 70%);
+  }
+
+  .profile-avatar {
+    width: 64px; height: 64px;
+    background: rgba(224,27,36,0.12);
+    border: 2px solid rgba(224,27,36,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    margin-bottom: 16px;
+  }
+
+  .profile-email {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--white);
+    letter-spacing: 0.3px;
+    word-break: break-all;
+    margin-bottom: 4px;
+  }
+
+  .profile-role-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 20px;
+  }
+
+  .profile-meta {
+    width: 100%;
+    border: 1px solid var(--grey-mid);
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--grey-mid);
+    gap: 12px;
+  }
+
+  .meta-row:last-child { border-bottom: none; }
+
+  .meta-key {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    flex-shrink: 0;
+  }
+
+  .meta-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--white);
+    text-align: right;
+    word-break: break-all;
+  }
+
+  .meta-val.green { color: var(--green); }
+
+  /* ─── STATS PANEL ─── */
+  .stat-rows { display: flex; flex-direction: column; gap: 2px; }
+
+  .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--grey-mid);
+    transition: background 0.2s;
+    gap: 12px;
+  }
+
+  .stat-row:hover { background: rgba(224,27,36,0.04); }
+
+  .stat-row-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .stat-row-icon {
+    width: 34px; height: 34px;
+    background: rgba(224,27,36,0.1);
+    border: 1px solid rgba(224,27,36,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    flex-shrink: 0;
+  }
+
+  .stat-row-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.3px;
+  }
+
+  .stat-row-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--red);
+    line-height: 1;
+  }
+
+  /* ─── QUICK ACTIONS ─── */
+  .action-list { display: flex; flex-direction: column; gap: 2px; }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--grey-mid);
+    color: var(--white);
+    text-decoration: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .action-btn:hover {
+    background: rgba(224,27,36,0.06);
+    border-color: rgba(224,27,36,0.35);
+  }
+
+  .action-btn-icon {
+    width: 32px; height: 32px;
+    background: rgba(224,27,36,0.1);
+    border: 1px solid rgba(224,27,36,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+    flex-shrink: 0;
+  }
+
+  .action-btn-arrow {
+    margin-left: auto;
+    color: rgba(224,27,36,0.4);
+    font-size: 12px;
+    transition: transform 0.2s, color 0.2s;
+  }
+
+  .action-btn:hover .action-btn-arrow {
+    transform: translateX(4px);
+    color: var(--red);
+  }
+
+  /* ─── TOOLS GRID ─── */
+  .tools-section {
+    margin-top: 2px;
+    border: 1px solid var(--grey-mid);
+    border-top: 2px solid rgba(224,27,36,0.4);
+  }
+
+  .tools-header {
+    padding: 18px 24px;
+    background: var(--grey);
+    border-bottom: 1px solid var(--grey-mid);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tools-header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1.5px;
+    color: var(--white);
+  }
+
+  .tools-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    padding: 2px;
+    background: var(--grey-mid);
+  }
+
+  @media (max-width: 560px) { .tools-grid { grid-template-columns: 1fr; } }
+
+  .tool-card {
+    background: var(--black-soft);
+    padding: 26px 24px;
+    text-decoration: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tool-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--red);
+    transition: width 0.4s ease;
+  }
+
+  .tool-card:hover { background: #111; }
+  .tool-card:hover::after { width: 100%; }
+
+  .tool-icon {
+    width: 42px; height: 42px;
+    background: rgba(224,27,36,0.1);
+    border: 1px solid rgba(224,27,36,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+    flex-shrink: 0;
+  }
+
+  .tool-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: var(--white);
+    margin-bottom: 5px;
+  }
+
+  .tool-desc {
+    font-size: 13px;
+    color: var(--white-dim);
+    line-height: 1.5;
+  }
+
+  /* ─── DANGER ZONE ─── */
+  .danger-section {
+    margin-top: 2px;
+    border: 1px solid rgba(224,27,36,0.4);
+    border-top: 2px solid var(--red);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .danger-section::before {
+    content: 'DANGER';
+    position: absolute;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 120px;
+    color: rgba(224,27,36,0.04);
+    right: -10px; top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    letter-spacing: 10px;
+    white-space: nowrap;
+  }
+
+  .danger-header {
+    padding: 18px 24px;
+    background: rgba(224,27,36,0.06);
+    border-bottom: 1px solid rgba(224,27,36,0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .danger-header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1.5px;
+    color: var(--red);
+  }
+
+  .danger-body {
+    padding: 28px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+
+  .danger-desc {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .danger-desc strong {
+    display: block;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--white);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  .danger-desc p {
+    font-size: 13px;
+    color: var(--white-dim);
+    line-height: 1.6;
+  }
+
+  .btn-danger {
+    background: var(--red);
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px;
+    letter-spacing: 2.5px;
+    padding: 12px 28px;
+    border: none;
+    cursor: pointer;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    transition: background 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .btn-danger:hover {
+    background: #c5171f;
+    box-shadow: 0 0 30px var(--red-glow);
+  }
+
+  /* ─── FOOTER STRIP ─── */
+  .page-footer-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 14px 20px;
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.2);
+    text-transform: uppercase;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s infinite;
+    margin-right: 8px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  @media (max-width: 600px) {
+    .page-wrap { padding: 24px 16px 60px; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .danger-body { flex-direction: column; }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Control Center</div>
+      <h1 class="page-title">Admin <span>Panel</span></h1>
+    </div>
+    <div class="admin-chip"><i class="fas fa-shield-alt"></i> Administrator</div>
+  </div>
+
+  <!-- Top 3-col Grid -->
+  <div class="top-grid">
+
+    <!-- Profile Card -->
+    <div class="panel profile-card">
+      <div class="panel-label">User Profile</div>
+      <div class="profile-avatar">{{ session.user.email[0] | upper }}</div>
+      <div class="profile-email">{{ session.user.email }}</div>
+      <div class="profile-role-tag">RecruitAI Administrator</div>
+      <div class="profile-meta">
+        <div class="meta-row">
+          <span class="meta-key">User ID</span>
+          <span class="meta-val">{{ session.user.id[:16] }}…</span>
         </div>
-
-        <h3 class="text-lg font-semibold text-gray-800">
-            {{ session.user.email }}
-        </h3>
-
-        <p class="text-sm text-gray-500 mb-4">
-            RecruitAI Administrator
-        </p>
-
-        <div class="bg-gray-50 rounded-lg p-4 text-sm">
-            <div class="flex justify-between mb-2">
-                <span>User ID</span>
-                <span class="font-mono text-xs">{{ session.user.id }}</span>
-            </div>
-
-            <div class="flex justify-between">
-                <span>Account Type</span>
-                <span class="text-green-600 font-semibold">Pro</span>
-            </div>
+        <div class="meta-row">
+          <span class="meta-key">Account</span>
+          <span class="meta-val green">Pro</span>
         </div>
+      </div>
     </div>
 
-
-    <!-- System Statistics -->
-    <div class="bg-white rounded-xl shadow p-6 border">
-
-        <h3 class="text-lg font-bold mb-4">System Stats</h3>
-
-        <div class="space-y-4">
-
-            <div class="flex justify-between bg-blue-50 p-3 rounded">
-                <span>Total Job Roles</span>
-                <span class="font-bold">{{ stats.jobs }}</span>
-            </div>
-
-            <div class="flex justify-between bg-purple-50 p-3 rounded">
-                <span>Total Candidates</span>
-                <span class="font-bold">{{ stats.cands }}</span>
-            </div>
-
+    <!-- System Stats -->
+    <div class="panel">
+      <div class="panel-label">System Stats</div>
+      <div class="stat-rows">
+        <div class="stat-row">
+          <div class="stat-row-left">
+            <div class="stat-row-icon"><i class="fas fa-briefcase"></i></div>
+            <div class="stat-row-label">Total Job Roles</div>
+          </div>
+          <div class="stat-row-val">{{ stats.jobs }}</div>
         </div>
-
+        <div class="stat-row">
+          <div class="stat-row-left">
+            <div class="stat-row-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-row-label">Total Candidates</div>
+          </div>
+          <div class="stat-row-val">{{ stats.cands }}</div>
+        </div>
+      </div>
     </div>
-
 
     <!-- Quick Actions -->
-    <div class="bg-white rounded-xl shadow p-6 border">
+    <div class="panel">
+      <div class="panel-label">Quick Actions</div>
+      <div class="action-list">
+        <a href="/job_roles" class="action-btn">
+          <div class="action-btn-icon"><i class="fas fa-briefcase"></i></div>
+          Manage Job Roles
+          <i class="fas fa-chevron-right action-btn-arrow"></i>
+        </a>
+        <a href="/candidates" class="action-btn">
+          <div class="action-btn-icon"><i class="fas fa-users"></i></div>
+          View Candidates
+          <i class="fas fa-chevron-right action-btn-arrow"></i>
+        </a>
+        <a href="/export" class="action-btn">
+          <div class="action-btn-icon"><i class="fas fa-file-csv"></i></div>
+          Export CSV
+          <i class="fas fa-chevron-right action-btn-arrow"></i>
+        </a>
+      </div>
+    </div>
 
-        <h3 class="text-lg font-bold mb-4">Quick Actions</h3>
+  </div>
 
-        <div class="space-y-3">
-
-            <a href="/job_roles"
-               class="block bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700">
-                Manage Job Roles
-            </a>
-
-            <a href="/candidates"
-               class="block bg-purple-600 text-white text-center py-2 rounded hover:bg-purple-700">
-                View Candidates
-            </a>
-
-            <a href="/export"
-               class="block bg-green-600 text-white text-center py-2 rounded hover:bg-green-700">
-                Export Candidates CSV
-            </a>
-
+  <!-- System Tools -->
+  <div class="tools-section">
+    <div class="tools-header">
+      <div class="panel-label" style="margin:0;">System Tools</div>
+    </div>
+    <div class="tools-grid">
+      <a href="/ai_screening" class="tool-card">
+        <div class="tool-icon"><i class="fas fa-robot"></i></div>
+        <div>
+          <div class="tool-title">AI Resume Screening</div>
+          <div class="tool-desc">Upload resumes and automatically match candidates to job roles using TF-IDF scoring.</div>
         </div>
-
+      </a>
+      <a href="/ranking" class="tool-card">
+        <div class="tool-icon"><i class="fas fa-trophy"></i></div>
+        <div>
+          <div class="tool-title">Candidate Ranking</div>
+          <div class="tool-desc">View score-based ranking of all candidates grouped by matched job role.</div>
+        </div>
+      </a>
     </div>
+  </div>
 
-</div>
-
-
-<!-- System Tools -->
-<div class="bg-white rounded-xl shadow border mt-8 p-6">
-
-    <h3 class="text-lg font-bold mb-4">System Tools</h3>
-
-    <div class="grid md:grid-cols-2 gap-4">
-
-        <a href="/ai_screening"
-           class="bg-blue-50 p-4 rounded hover:bg-blue-100">
-            <h4 class="font-semibold">AI Resume Screening</h4>
-            <p class="text-sm text-gray-500">
-                Upload resumes and automatically match candidates.
-            </p>
-        </a>
-
-        <a href="/ranking"
-           class="bg-yellow-50 p-4 rounded hover:bg-yellow-100">
-            <h4 class="font-semibold">Candidate Ranking</h4>
-            <p class="text-sm text-gray-500">
-                View ranking of candidates by job role.
-            </p>
-        </a>
-
+  <!-- Danger Zone -->
+  <div class="danger-section">
+    <div class="danger-header">
+      <i class="fas fa-exclamation-triangle" style="color:var(--red);"></i>
+      <div class="danger-header-title">Danger Zone</div>
     </div>
+    <div class="danger-body">
+      <div class="danger-desc">
+        <strong>Delete All Data</strong>
+        <p>This will permanently erase ALL job roles and candidate records from the system. This action cannot be undone.</p>
+      </div>
+      <form action="/delete_all_data" method="POST"
+            onsubmit="return confirm('This will delete ALL data permanently. Continue?')">
+        <button type="submit" class="btn-danger">
+          <i class="fas fa-trash"></i> Delete All Data
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer Strip -->
+  <div class="page-footer-strip">
+    <div><span class="footer-dot"></span> Admin console active</div>
+    <div>RecruitAI · Admin Panel</div>
+  </div>
 
 </div>
-
-
-<!-- Danger Zone -->
-<div class="bg-red-50 border border-red-200 rounded-xl mt-8 p-6">
-
-    <h3 class="text-lg font-bold text-red-700 mb-4">
-        Danger Zone
-    </h3>
-
-    <p class="text-sm text-red-600 mb-4">
-        This action will permanently delete ALL job roles and candidate data.
-        This cannot be undone.
-    </p>
-
-<form action="/delete_all_data" method="POST"
-onsubmit="return confirm('This will delete ALL data permanently. Continue?')">
-
-<button class="bg-red-600 text-white px-5 py-2 rounded">
-Delete All Data
-</button>
-
-</form>
-
-</div>
-
 
 {% endblock %}

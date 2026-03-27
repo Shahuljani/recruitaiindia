@@ -1,51 +1,577 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="text-3xl font-bold mb-8">Dashboard</h2>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
 
-<div class="grid grid-cols-4 gap-6">
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="text-lg font-bold">Jobs</h3>
-        <p class="text-3xl">{{ stats.jobs }}</p>
+  :root {
+    --red: #e01b24;
+    --red-dark: #a01010;
+    --red-glow: rgba(224, 27, 36, 0.35);
+    --black: #000000;
+    --black-soft: #0a0a0a;
+    --black-card: rgba(10, 10, 10, 0.88);
+    --grey: #1a1a1a;
+    --grey-mid: #2a2a2a;
+    --white: #f0f0f0;
+    --white-dim: rgba(240,240,240,0.65);
+    --green: #4ade80;
+    --yellow: #fbbf24;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ─── PAGE WRAPPER ─── */
+  .dash-wrap {
+    min-height: 100vh;
+    padding: 40px 30px 80px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ─── HEADER ─── */
+  .dash-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 48px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--grey-mid);
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .dash-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .dash-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 28px;
+    height: 2px;
+    background: var(--red);
+  }
+
+  .dash-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+    color: var(--white);
+  }
+
+  .dash-title span { color: var(--red); }
+
+  .dash-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--white-dim);
+    text-transform: uppercase;
+    text-align: right;
+  }
+
+  .dash-meta strong {
+    display: block;
+    font-size: 13px;
+    color: var(--white);
+    margin-bottom: 3px;
+  }
+
+  /* ─── STAT CARDS ─── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-bottom: 2px;
+    border: 1px solid var(--grey-mid);
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+
+  .stat-card {
+    background: var(--black-soft);
+    padding: 32px 28px;
+    border-right: 1px solid var(--grey-mid);
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+
+  .stat-card:last-child { border-right: none; }
+  .stat-card:hover { background: #111; }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--red);
+    transition: width 0.4s ease;
+  }
+
+  .stat-card:hover::after { width: 100%; }
+
+  .stat-bg-num {
+    position: absolute;
+    top: -6px; right: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    color: rgba(224,27,36,0.07);
+    line-height: 1;
+    pointer-events: none;
+    letter-spacing: 2px;
+  }
+
+  .stat-icon {
+    width: 36px; height: 36px;
+    background: rgba(224,27,36,0.12);
+    border: 1px solid rgba(224,27,36,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--red);
+    clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+    margin-bottom: 18px;
+  }
+
+  .stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--white-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    color: var(--white);
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+
+  .stat-value.red   { color: var(--red); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.yellow{ color: var(--yellow); }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--white-dim);
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── SECTION HEADER ─── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 48px;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .section-label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .section-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--red);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 2px;
+    background: var(--red);
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1px;
+    color: var(--white);
+  }
+
+  .section-count {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--white-dim);
+    text-transform: uppercase;
+    background: var(--grey);
+    border: 1px solid var(--grey-mid);
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-count span { color: var(--red); font-size: 14px; }
+
+  /* ─── TABLE ─── */
+  .table-wrap {
+    border: 1px solid var(--grey-mid);
+    border-top: 2px solid var(--red);
+    overflow-x: auto;
+    margin-top: 20px;
+    position: relative;
+  }
+
+  .table-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--red), transparent 80%);
+  }
+
+  .dash-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 560px;
+    font-size: 14px;
+  }
+
+  .dash-table thead tr {
+    background: var(--grey);
+    border-bottom: 1px solid var(--grey-mid);
+  }
+
+  .dash-table th {
+    padding: 14px 20px;
+    text-align: left;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: var(--red);
+    text-transform: uppercase;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .dash-table tbody tr {
+    border-bottom: 1px solid var(--grey-mid);
+    transition: background 0.2s;
+  }
+
+  .dash-table tbody tr:last-child { border-bottom: none; }
+  .dash-table tbody tr:hover { background: rgba(224,27,36,0.04); }
+
+  .dash-table td {
+    padding: 16px 20px;
+    color: var(--white-dim);
+    vertical-align: middle;
+  }
+
+  /* candidate name */
+  .td-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .td-avatar {
+    width: 34px; height: 34px;
+    background: rgba(224,27,36,0.12);
+    border: 1px solid rgba(224,27,36,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    color: var(--red);
+    flex-shrink: 0;
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  }
+
+  .td-name-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--white);
+    letter-spacing: 0.3px;
+  }
+
+  /* role pill */
+  .role-pill {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--grey-mid);
+    color: var(--white-dim);
+    white-space: nowrap;
+  }
+
+  /* score bar */
+  .score-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .score-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    line-height: 1;
+    min-width: 36px;
+  }
+
+  .score-num.high   { color: var(--green); }
+  .score-num.medium { color: var(--yellow); }
+  .score-num.low    { color: var(--red); }
+
+  .mini-bar {
+    width: 70px; height: 3px;
+    background: var(--grey-mid);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .mini-fill {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+  }
+
+  /* status badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    white-space: nowrap;
+  }
+
+  .badge-green  { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: var(--green); }
+  .badge-yellow { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); color: var(--yellow); }
+  .badge-red    { background: rgba(224,27,36,0.1);  border: 1px solid rgba(224,27,36,0.35); color: #f87171; }
+
+  /* ─── EMPTY ROW ─── */
+  .empty-row td {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(240,240,240,0.2);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* ─── BOTTOM STRIP ─── */
+  .dash-footer-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 14px 20px;
+    background: var(--black-soft);
+    border: 1px solid var(--grey-mid);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(240,240,240,0.25);
+    text-transform: uppercase;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s infinite;
+    margin-right: 8px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 600px) {
+    .dash-wrap { padding: 24px 16px 60px; }
+    .dash-header { flex-direction: column; align-items: flex-start; }
+    .dash-meta { text-align: left; }
+  }
+</style>
+
+<!-- ══════════════════════════════════════════
+     DASHBOARD
+══════════════════════════════════════════ -->
+<div class="dash-wrap">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div>
+      <div class="dash-eyebrow">Recruiter Console</div>
+      <h1 class="dash-title">Your <span>Dashboard</span></h1>
+    </div>
+    <div class="dash-meta">
+      <strong>RecruitAI</strong>
+      <span id="live-time"></span>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-bg-num">JB</div>
+      <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
+      <div class="stat-label">Active Jobs</div>
+      <div class="stat-value">{{ stats.jobs }}</div>
+      <div class="stat-sub">Job roles posted</div>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="text-lg font-bold">Candidates</h3>
-        <p class="text-3xl">{{ stats.cands }}</p>
+    <div class="stat-card">
+      <div class="stat-bg-num">CD</div>
+      <div class="stat-icon"><i class="fas fa-users"></i></div>
+      <div class="stat-label">Candidates</div>
+      <div class="stat-value">{{ stats.cands }}</div>
+      <div class="stat-sub">Total applicants</div>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="text-lg font-bold">Shortlisted</h3>
-        <p class="text-3xl">{{ stats.short }}</p>
+    <div class="stat-card">
+      <div class="stat-bg-num">SL</div>
+      <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+      <div class="stat-label">Shortlisted</div>
+      <div class="stat-value green">{{ stats.short }}</div>
+      <div class="stat-sub">Score above 75</div>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="text-lg font-bold">Avg Score</h3>
-        <p class="text-3xl">{{ stats.avg }}%</p>
+    <div class="stat-card">
+      <div class="stat-bg-num">AV</div>
+      <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+      <div class="stat-label">Avg Score</div>
+      <div class="stat-value {% if stats.avg >= 75 %}green{% elif stats.avg >= 50 %}yellow{% else %}red{% endif %}">{{ stats.avg }}<small style="font-size:22px;">%</small></div>
+      <div class="stat-sub">AI match average</div>
     </div>
-</div>
 
-<h3 class="text-xl font-bold mt-10 mb-4">Recent Candidates</h3>
+  </div>
 
-<table class="w-full bg-white shadow rounded">
-    <thead class="bg-gray-200">
+  <!-- Recent Candidates Table -->
+  <div class="section-header">
+    <div class="section-label">
+      <div class="section-eyebrow">Live Feed</div>
+      <div class="section-title">Recent Candidates</div>
+    </div>
+    <div class="section-count">
+      <span>{{ recent | length }}</span> entries shown
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="dash-table">
+      <thead>
         <tr>
-            <th class="p-3">Name</th>
-            <th>Role</th>
-            <th>Score</th>
-            <th>Status</th>
+          <th>Candidate</th>
+          <th>Matched Role</th>
+          <th>AI Score</th>
+          <th>Status</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for c in recent %}
-        <tr class="border-t">
-            <td class="p-3">{{ c.name }}</td>
-            <td>{{ c.matched_role }}</td>
-            <td>{{ c.score }}%</td>
-            <td>{{ c.status }}</td>
+        <tr>
+          <td>
+            <div class="td-name">
+              <div class="td-avatar">{{ c.name[0] | upper if c.name else '?' }}</div>
+              <div class="td-name-text">{{ c.name }}</div>
+            </div>
+          </td>
+          <td><span class="role-pill">{{ c.matched_role }}</span></td>
+          <td>
+            <div class="score-cell">
+              <span class="score-num {% if c.score >= 75 %}high{% elif c.score >= 50 %}medium{% else %}low{% endif %}">{{ c.score }}</span>
+              <div class="mini-bar">
+                <div class="mini-fill" style="width:{{ c.score }}%; background:{% if c.score >= 75 %}#4ade80{% elif c.score >= 50 %}#fbbf24{% else %}#e01b24{% endif %};"></div>
+              </div>
+              <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--white-dim);">%</span>
+            </div>
+          </td>
+          <td>
+            {% if c.status == 'Shortlisted' %}
+              <span class="badge badge-green"><i class="fas fa-check-circle"></i> Shortlisted</span>
+            {% elif c.status == 'On Hold' %}
+              <span class="badge badge-yellow"><i class="fas fa-pause-circle"></i> On Hold</span>
+            {% else %}
+              <span class="badge badge-red"><i class="fas fa-times-circle"></i> Rejected</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr class="empty-row">
+          <td colspan="4">— No candidates uploaded yet —</td>
         </tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer strip -->
+  <div class="dash-footer-strip">
+    <div><span class="footer-dot"></span> System operational</div>
+    <div>AI Engine · TF-IDF Cosine · RecruitAI v1.0</div>
+  </div>
+
+</div>
+
+<script>
+  // Live clock
+  function updateTime() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('live-time').textContent =
+      `${pad(now.getDate())}.${pad(now.getMonth()+1)}.${now.getFullYear()}  ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+  updateTime();
+  setInterval(updateTime, 1000);
+</script>
 
 {% endblock %}
